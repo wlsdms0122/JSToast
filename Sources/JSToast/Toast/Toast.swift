@@ -7,17 +7,18 @@
 
 import UIKit
 
-public class Toast {
+public class Toast: Equatable {
     public struct Position: Layout {
         // MARK: - Property
         private let layout: Layout
         
+        // MARK: - Initializer
         public init(layout: Layout) {
             self.layout = layout
         }
         
         // MARK: - Public
-        public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) {
+        public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
             layout.setUp(from: lhs, to: rhs, in: base)
         }
         
@@ -28,6 +29,7 @@ public class Toast {
         // MARK: - Property
         private let animator: Animator
         
+        // MARK: - Initializer
         public init(animator: Animator) {
             self.animator = animator
         }
@@ -41,17 +43,47 @@ public class Toast {
     }
     
     // MARK: - Property
-    let toast: UIView
+    public static var layer: UIView? = {
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.windows.first
+        } else {
+            return UIApplication.shared.keyWindow
+        }
+    }()
+    
+    public let view: UIView
+    private var constraints: [NSLayoutConstraint] = [] {
+        didSet {
+            NSLayoutConstraint.deactivate(oldValue)
+            NSLayoutConstraint.activate(constraints)
+        }
+    }
     
     private var retain: Toast?
     
     // MARK: - Initializer
-    public init(_ toast: UIView) {
-        self.toast = toast
+    public init(_ view: UIView) {
+        self.view = view
     }
     
     // MARK: - Public
-    func show(
+    public static func == (lhs: Toast, rhs: Toast) -> Bool {
+        lhs.view == rhs.view
+    }
+    
+    /// Show toast.
+    ///
+    /// - parameters:
+    ///   - duration: The duration informing that the time the toast is exposed. Default value is `nil`, it mean toast doesn't hide.
+    ///   - positions: The positions list describe where toast view layouted.
+    ///   - target: The target is the reference for where the toast will be shown. Default value is `nil`, if value is `nil`, the target is same as `layer`.
+    ///   - layer: The layer where the toast will attach. Default value is `nil`. If value is `nil`, the toast will attach to key window.
+    ///   - boundary: The boundary insets is maximum layout guideline. Default value is `.zero`.
+    ///   - showAnimation: The animation to be played when appearing. Default value is `fadeIn(duration: 0.3)`.
+    ///   - hideAnimation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
+    ///   - shown: The shown completion handler with success. Default value is `nil`.
+    ///   - hidden: The hidden completion handler with success. Default value is `nil`.
+    open func show(
         withDuration duration: TimeInterval? = nil,
         at positions: [Position],
         of target: UIView? = nil,
@@ -62,94 +94,141 @@ public class Toast {
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) {
-        guard let layer = layer ?? getLayer() else {
+        guard let layer = layer ?? Self.layer else {
             shown?(false)
             return
         }
         
-        attachToast(
-            toast,
+        // Attach toast view.
+        [view].forEach {
+            $0.removeFromSuperview()
+            
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            layer.addSubview($0)
+        }
+        
+        // Set layout constraints of toast view.
+        setUpLayout(
+            view,
             positions: positions,
-            of: target,
+            of: target ?? layer,
             base: layer,
             withBoundary: boundary
         )
         
-        showAnimation.play(toast) { shown?($0) }
+        // Show with animation.
+        showAnimation.play(view) { shown?($0) }
         
+        // Retain self instance of toast.
         retain = self
         
         if let duration = duration {
+            // Set timer if duration set.
             Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+                // Hid
                 self?.hide(animation: hideAnimation) { hidden?($0) }
                 self?.retain = nil
             }
         }
     }
     
-    func hide(animation: Animation = .fadeOut(duration: 0.3), completion: ((Bool) -> Void)? = nil) {
+    /// Hide toast.
+    ///
+    /// - parameters:
+    ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
+    ///   - completion: The hidden completion handler with success.
+    open func hide(
+        animation: Animation = .fadeOut(duration: 0.3),
+        completion: ((Bool) -> Void)? = nil
+    ) {
         guard retain != nil else {
+            // Complete if instance not retained. (not shown tey.)
             completion?(false)
             return
         }
         
-        animation.play(toast) { [toast] in
-            toast.removeFromSuperview()
+        // Hide whith animation.
+        animation.play(view) { [view] in
+            view.removeFromSuperview()
             completion?($0)
         }
         
+        // Release self instance of toast.
         retain = nil
     }
     
+    /// Update toast layout.
+    ///
+    /// - parameters:
+    ///   - positions: The positions list describe where toast view layouted.
+    ///   - target: The target is the reference for where the toast will be shown. Default value is `nil`, if value is `nil`, the target is same as `layer`.
+    ///   - boundary: The boundary insets is maximum layout guideline. Default value is `.zero`.
+    open func update(
+        at positions: [Position],
+        of target: UIView? = nil,
+        boundary: UIEdgeInsets = .zero
+    ) {
+        guard let layer = view.superview else { return }
+        let target = target ?? layer
+        
+        UIView.animate(withDuration: 0.3) { [self] in
+            // Set layout constraints of toast
+            constraints = positions.map { $0.setUp(from: view, to: target, in: layer) }
+            
+            // Set toast boundary constraints
+            NSLayoutConstraint.activate([
+                view.topAnchor.constraint(
+                    greaterThanOrEqualTo: layer.safeAreaLayoutGuide.topAnchor,
+                    constant: boundary.top
+                ),
+                view.trailingAnchor.constraint(
+                    lessThanOrEqualTo: layer.safeAreaLayoutGuide.trailingAnchor,
+                    constant: -boundary.right
+                ),
+                view.bottomAnchor.constraint(
+                    lessThanOrEqualTo: layer.safeAreaLayoutGuide.bottomAnchor,
+                    constant: -boundary.bottom
+                ),
+                view.leadingAnchor.constraint(
+                    greaterThanOrEqualTo: layer.safeAreaLayoutGuide.leadingAnchor,
+                    constant: boundary.left
+                )
+            ])
+            
+            layer.layoutIfNeeded()
+        }
+    }
+    
     // MARK: - Private
-    private func attachToast(
-        _ toast: UIView,
+    private func setUpLayout(
+        _ view: UIView,
         positions: [Position],
-        of target: UIView?,
+        of target: UIView,
         base layer: UIView,
         withBoundary boundary: UIEdgeInsets
     ) {
-        let target = target ?? layer
+        // Set layout constraints of toast.
+        constraints = positions.map { $0.setUp(from: view, to: target, in: layer) }
         
-        [toast].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            layer.addSubview($0)
-        }
-        
-        // Layout toast
-        positions.forEach { $0.setUp(from: toast, to: target, in: layer) }
-        
-        // Set toast boundary constraints
+        // Set toast boundary constraints.
         NSLayoutConstraint.activate([
-            toast.topAnchor.constraint(
+            view.topAnchor.constraint(
                 greaterThanOrEqualTo: layer.safeAreaLayoutGuide.topAnchor,
                 constant: boundary.top
             ),
-            toast.trailingAnchor.constraint(
+            view.trailingAnchor.constraint(
                 lessThanOrEqualTo: layer.safeAreaLayoutGuide.trailingAnchor,
                 constant: -boundary.right
             ),
-            toast.bottomAnchor.constraint(
+            view.bottomAnchor.constraint(
                 lessThanOrEqualTo: layer.safeAreaLayoutGuide.bottomAnchor,
                 constant: -boundary.bottom
             ),
-            toast.leadingAnchor.constraint(
+            view.leadingAnchor.constraint(
                 greaterThanOrEqualTo: layer.safeAreaLayoutGuide.leadingAnchor,
                 constant: boundary.left
             )
         ])
-    }
-    
-    private func getLayer() -> UIView? {
-        if #available(iOS 13.0, *) {
-            return UIApplication.shared.windows.first
-        } else {
-            return UIApplication.shared.keyWindow
-        }
-    }
-    
-    deinit {
-        print("deinited \(self)")
     }
 }
 

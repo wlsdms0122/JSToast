@@ -20,7 +20,7 @@ public enum Axis {
 }
 
 public protocol Layout {
-    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView)
+    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint
 }
 
 // MARK: - InsideLayout
@@ -36,7 +36,7 @@ public struct InsideLayout: Layout {
     }
     
     // MARK: - Public
-    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) {
+    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint
@@ -69,7 +69,7 @@ public struct InsideLayout: Layout {
         
         constraint.priority = .init(rawValue: 999)
         
-        NSLayoutConstraint.activate([constraint])
+        return constraint
     }
     
     // MARK: - Private
@@ -88,7 +88,7 @@ public struct OutsideLayout: Layout {
     }
     
     // MARK: - Public
-    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) {
+    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint
@@ -120,7 +120,7 @@ public struct OutsideLayout: Layout {
         
         constraint.priority = .init(rawValue: 999)
         
-        NSLayoutConstraint.activate([constraint])
+        return constraint
     }
     
     // MARK: - Private
@@ -139,7 +139,7 @@ struct CenterLayout: Layout {
     }
     
     // MARK: - Public
-    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) {
+    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint
@@ -147,19 +147,19 @@ struct CenterLayout: Layout {
         case .x:
             constraint = lhs.centerXAnchor.constraint(
                 equalTo: base.centerXAnchor,
-                constant: rect.midX - base.frame.midX + offset + (rhs.safeAreaInsets.left - rhs.safeAreaInsets.right) / 2
+                constant: rect.midX - base.bounds.midX + offset + (rhs.safeAreaInsets.left - rhs.safeAreaInsets.right) / 2
             )
             
         case .y:
             constraint = lhs.centerYAnchor.constraint(
                 equalTo: base.centerYAnchor,
-                constant: rect.midY - base.frame.midY + offset + (rhs.safeAreaInsets.top - rhs.safeAreaInsets.bottom) / 2
+                constant: rect.midY - base.bounds.midY + offset + (rhs.safeAreaInsets.top - rhs.safeAreaInsets.bottom) / 2
             )
         }
         
         constraint.priority = .init(rawValue: 999)
         
-        NSLayoutConstraint.activate([constraint])
+        return constraint
     }
     
     // MARK: - Private
