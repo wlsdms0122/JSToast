@@ -244,7 +244,6 @@ extension Toast.Position {
     public static func center(_ offset: CGFloat = 0, of axis: Axis) -> Self {
         .init(layout: CenterLayout(offset, of: axis))
     }
-    
 }
 
 extension Toast.Animation {
