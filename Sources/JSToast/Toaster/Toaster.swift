@@ -34,33 +34,33 @@ open class Toaster {
     open func showToast(
         _ toast: Toast,
         withDuration duration: TimeInterval? = nil,
-        at positions: [Toast.Position],
-        of target: UIView? = nil,
-        base layer: UIView? = nil,
+        positions: [Toast.Position],
+        target: UIView? = nil,
+        layer: UIView? = nil,
         boundary: UIEdgeInsets = .zero,
-        show showAnimation: Toast.Animation = .fadeIn(duration: 0.3),
-        hide hideAnimation: Toast.Animation = .fadeOut(duration: 0.3),
-        cancel cancelAnimation: Toast.Animation = .fadeOut(duration: 0.3),
+        showAnimator: Toast.Animator = .fadeIn(duration: 0.3),
+        hideAnimator: Toast.Animator = .fadeOut(duration: 0.3),
+        cancelAnimator: Toast.Animator = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) {
         // Hide showing toast.
-        hideToast(animation: cancelAnimation)
+        hideToast(animation: cancelAnimator)
         
         // Show toast.
         toast.show(
-            at: positions,
-            of: target,
-            base: layer,
+            layouts: positions,
+            target: target,
+            layer: layer,
             boundary: boundary,
-            show: showAnimation,
+            showAnimation: showAnimator,
             shown: shown
         )
         
         if let duration = duration {
             // Set timer if duration set.
             Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak toast] _ in
-                toast?.hide(animation: hideAnimation, completion: hidden)
+                toast?.hide(animation: hideAnimator, completion: hidden)
             }
         }
         
@@ -74,7 +74,7 @@ open class Toaster {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success. Default value is `nil`.
     open func hideToast(
-        animation: Toast.Animation = .fadeOut(duration: 0.3),
+        animation: Toast.Animator = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
         toast?.hide(animation: animation, completion: completion)
