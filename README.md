@@ -5,7 +5,7 @@
 ### Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(name: "JSToast", path: "https://github.com/wlsdms0122/JSToast", from: "1.0.0")
+    .package(name: "JSToast", path: "https://github.com/wlsdms0122/JSToast", from: "2.0.0")
 ]
 ```
 
@@ -29,7 +29,7 @@ let toast = Toast(toastView)
 ```swift
 toast.show(
     withDuration: 3,
-    at: [.inside(of: .bottom), .center(of: .x)]
+    layouts: [.inside(of: .bottom), .center(of: .x)]
 )
 ```  
 
@@ -69,8 +69,8 @@ And let's see toast `show` function again.
 toast.show(
     withDuration: 3,
     // `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis. 
-    at: [.inside(of: .bottom), .center(of: .x)],
-    of: someView
+    layouts: [.inside(of: .bottom), .center(of: .x)],
+    target: someView
 )
 ```
 
@@ -85,38 +85,38 @@ You can set animations about how to appear the toast, how to disappear the toast
 toast.show(
     withDuration: 3,
     // `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis. 
-    at: [.inside(of: .bottom), .center(of: .x)],
-    show: .fadeIn(duration: 0.3),
-    hide: .fadeOut(duration: 0.3)
+    layouts: [.inside(of: .bottom), .center(of: .x)],
+    showAnimation: .fadeIn(duration: 0.3),
+    hideAnimation: .fadeOut(duration: 0.3)
 )
 ```
 
 `JSToast` serve default animations below.
 
 ```swift
-extension Toast.Animation {
+extension Toast.Animator {
     public static func fadeIn(duration: TimeInterval) -> Self {
-        .init(animator: FadeInAnimator(duration: duration))
+        .init(animation: FadeInAnimation(duration: duration))
     }
     
     public static func fadeOut(duration: TimeInterval) -> Self {
-        .init(animator: FadeOutAnimator(duration: duration))
+        .init(animation: FadeOutAnimation(duration: duration))
     }
     
     public static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        .init(animator: SlideInAnimator(duration: duration, direction: direction, offset: offset))
+        .init(animation: SlideInAnimation(duration: duration, direction: direction, offset: offset))
     }
     
     public static func slideOut(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        .init(animator: SlideOutAnimator(duration: duration, direction: direction, offset: offset))
+        .init(animation: SlideOutAnimation(duration: duration, direction: direction, offset: offset))
     }
 }
 ```
 
-If you want to customize toast animation, define animation through adapt `Animator`
+If you want to customize toast animation, define animation through adapt `Animation`
    
 ```swift
-public protocol Animator {
+public protocol Animation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
 }
 ```
@@ -124,13 +124,13 @@ public protocol Animator {
 And add your animation into extension like this.
 
 ```swift
-extension Toast.Animation {
+extension Toast.Animator {
     public static func your_in_animation(duration: TimeIntervale) -> Self {
-        .init(animator: YourInAnimation(duration: duration))
+        .init(animation: YourInAnimation(duration: duration))
     }
     
     public static func your_out_animation(duration: TimeIntervale) -> Self {
-        .init(animator: YourOutAnimation(duration: duration))
+        .init(animation: YourOutAnimation(duration: duration))
     }
 }
 ```
