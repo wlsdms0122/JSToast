@@ -14,12 +14,12 @@ public enum Direction {
     case left
 }
 
-public protocol Animator {
+public protocol Animation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
 }
 
 // MARK: - FadeInAnimator
-public struct FadeInAnimator: Animator {
+public struct FadeInAnimation: Animation {
     private let duration: TimeInterval
     
     public init(duration: TimeInterval = 0.3) {
@@ -38,7 +38,7 @@ public struct FadeInAnimator: Animator {
 }
 
 // MARK: - FadeOutAnimator
-public struct FadeOutAnimator: Animator {
+public struct FadeOutAnimation: Animation {
     private let duration: TimeInterval
     
     public init(duration: TimeInterval = 0.3) {
@@ -57,7 +57,7 @@ public struct FadeOutAnimator: Animator {
 }
 
 // MARK: - SlideInAnimator
-public struct SlideInAnimator: Animator {
+public struct SlideInAnimation: Animation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
@@ -121,7 +121,7 @@ public struct SlideInAnimator: Animator {
 }
 
 // MARK: - SlideOutAnimator
-public struct SlideOutAnimator: Animator {
+public struct SlideOutAnimation: Animation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
