@@ -53,6 +53,11 @@ public class Toast: Equatable {
         }
     }
     
+    private var timer: Timer? {
+        didSet {
+            oldValue?.invalidate()
+        }
+    }
     private var retain: Toast?
     
     // MARK: - Initializer
@@ -118,8 +123,8 @@ public class Toast: Equatable {
         
         if let duration = duration {
             // Set timer if duration set.
-            Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
-                // Hid
+            timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+                // Hide
                 self?.hide(animation: hideAnimation) { hidden?($0) }
                 self?.retain = nil
             }
