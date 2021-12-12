@@ -1,5 +1,5 @@
 # 📌 Reference
-> Add any references to help understand this pull request.
+> Add any references help for understand this pull request.
 
 
 # 🔥 Cause
