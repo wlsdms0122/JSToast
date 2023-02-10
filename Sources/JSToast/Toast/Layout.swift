@@ -20,7 +20,7 @@ public enum Axis {
 }
 
 public protocol Layout {
-    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint
+    func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint
 }
 
 // MARK: - InsideLayout
@@ -36,7 +36,7 @@ public struct InsideLayout: Layout {
     }
     
     // MARK: - Public
-    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint
@@ -88,7 +88,7 @@ public struct OutsideLayout: Layout {
     }
     
     // MARK: - Public
-    public func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint
@@ -139,7 +139,7 @@ struct CenterLayout: Layout {
     }
     
     // MARK: - Public
-    func setUp(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint

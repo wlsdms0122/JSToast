@@ -1,5 +1,5 @@
 # 📌 Reference
-> Add any references to help understand this pull request.
+> Add any references help for understand this pull request.
 
 
 # 🔥 Cause
@@ -8,7 +8,7 @@
 
 # 📄 Changes
 > Write what is changed.
-> You can write more detail informations using MD symtax.
+> You can write more detail informations using MD syntax.
 
 
 # 🚧 Testing
