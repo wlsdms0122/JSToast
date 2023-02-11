@@ -23,6 +23,24 @@ public protocol Layout {
     func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint
 }
 
+public extension Layout where Self == InsideLayout {
+    static func inside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
+        InsideLayout(offset, of: anchor)
+    }
+}
+
+public extension Layout where Self == OutsideLayout {
+    static func outside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
+        OutsideLayout(offset, of: anchor)
+    }
+}
+
+public extension Layout where Self == CenterLayout {
+    static func center(_ offset: CGFloat = 0, of axis: Axis) -> Self {
+        CenterLayout(offset, of: axis)
+    }
+}
+
 // MARK: - InsideLayout
 public struct InsideLayout: Layout {
     // MARK: - Property
@@ -127,7 +145,7 @@ public struct OutsideLayout: Layout {
 }
 
 // MARK: - CenterLayout
-struct CenterLayout: Layout {
+public struct CenterLayout: Layout {
     // MARK: - Property
     let offset: CGFloat
     let axis: Axis
@@ -139,7 +157,7 @@ struct CenterLayout: Layout {
     }
     
     // MARK: - Public
-    func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
         let rect = rhs.convert(rhs.bounds, to: base)
         
         let constraint: NSLayoutConstraint

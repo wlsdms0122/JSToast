@@ -18,6 +18,30 @@ public protocol Animation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
 }
 
+public extension Animation where Self == FadeInAnimation {
+    static func fadeIn(duration: TimeInterval) -> Self {
+        FadeInAnimation(duration: duration)
+    }
+}
+
+public extension Animation where Self == FadeOutAnimation {
+    static func fadeOut(duration: TimeInterval) -> Self {
+        FadeOutAnimation(duration: duration)
+    }
+}
+
+public extension Animation where Self == SlideInAnimation {
+    static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
+        SlideInAnimation(duration: duration, direction: direction, offset: offset)
+    }
+}
+
+public extension Animation where Self == SlideOutAnimation {
+    static func slideOut(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
+        SlideOutAnimation(duration: duration, direction: direction, offset: offset)
+    }
+}
+
 // MARK: - FadeInAnimator
 public struct FadeInAnimation: Animation {
     private let duration: TimeInterval
