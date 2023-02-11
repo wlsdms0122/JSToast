@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 public class Toast: Equatable {
     // MARK: - Property
@@ -208,5 +209,16 @@ public class Toast: Equatable {
                 constant: boundary.left
             )
         ]
+    }
+}
+
+public extension Toast {
+    convenience init<V: View>(_ view: V) {
+        let viewController = UIHostingController(rootView: view)
+        self.init(viewController.view)
+    }
+    
+    convenience init<V: View>(@ViewBuilder _ content: () -> V) {
+        self.init(content())
     }
 }
