@@ -11,7 +11,7 @@ open class Toaster {
     // MARK: - Property
     public static let shared = Toaster()
     
-    private weak var toast: Toast?
+    private var toast: Toast?
     
     // MARK: - Initializer
     private init() { }
@@ -22,9 +22,9 @@ open class Toaster {
     /// - parameters:
     ///   - toast: The toast will show.
     ///   - duration: The duration informing that the time the toast is exposed. Default value is `nil`, it mean toast doesn't hide.
-    ///   - positions: The positions list describe where toast view layouted.
+    ///   - layouts: The positions list describe where toast view layouted.
     ///   - target: The target is the reference for where the toast will be shown. Default value is `nil`, if value is `nil`, the target is same as `layer`.
-    ///   - layer: The layer where the toast will attach. Default value is `nil`. If value is `nil`, the toast will attach to key window.
+    ///   - scene: The layer where the toast will attach. Default value is `nil`. If value is `nil`, the toast will attach to key window.
     ///   - boundary: The boundary insets is maximum layout guideline. Default value is `.zero`.
     ///   - showAnimation: The animation to be played when appearing. Default value is `fadeIn(duration: 0.3)`.
     ///   - hideAnimation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
@@ -34,38 +34,37 @@ open class Toaster {
     open func showToast(
         _ toast: Toast,
         withDuration duration: TimeInterval? = nil,
-        positions: [Toast.Position],
+        layouts: [Layout],
         target: UIView? = nil,
-        layer: UIView? = nil,
+        scene: UIWindowScene? = nil,
         boundary: UIEdgeInsets = .zero,
-        showAnimator: Toast.Animator = .fadeIn(duration: 0.3),
-        hideAnimator: Toast.Animator = .fadeOut(duration: 0.3),
-        cancelAnimator: Toast.Animator = .fadeOut(duration: 0.3),
+        showAnimation: Animation = .fadeIn(duration: 0.3),
+        hideAnimation: Animation = .fadeOut(duration: 0.3),
+        cancelAnimation: Animation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) {
         // Hide showing toast.
-        hideToast(animation: cancelAnimator)
+        hideToast(animation: cancelAnimation)
         
         // Show toast.
-        toast.show(
-            layouts: positions,
+        self.toast = toast.show(
+            layouts: layouts,
             target: target,
-            layer: layer,
+            scene: scene,
             boundary: boundary,
-            showAnimation: showAnimator,
+            showAnimation: showAnimation,
             shown: shown
         )
         
         if let duration = duration {
             // Set timer if duration set.
-            Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak toast] _ in
-                toast?.hide(animation: hideAnimator, completion: hidden)
+            Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self, weak toast] _ in
+                guard self?.toast == toast else { return }
+                toast?.hide(animation: hideAnimation, completion: hidden)
+                self?.toast = nil
             }
         }
-        
-        // Store toast that weak reference.
-        self.toast = toast
     }
     
     /// Hide showing toast.
@@ -74,9 +73,12 @@ open class Toaster {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success. Default value is `nil`.
     open func hideToast(
-        animation: Toast.Animator = .fadeOut(duration: 0.3),
+        animation: Animation = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
+        let toast = self.toast
+        self.toast = nil
+        
         toast?.hide(animation: animation, completion: completion)
     }
     
