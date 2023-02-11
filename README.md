@@ -5,13 +5,11 @@
 ### Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(name: "JSToast", path: "https://github.com/wlsdms0122/JSToast", from: "2.0.0")
+    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.1.0")
 ]
 ```
 
 # How to use
-When you want to show toast, first you instantiate `Toast`.
-
 ```swift
 let toastView = UILabel()
 toastView.backgroundColor = .black.withAlphaComponent(0.6)
@@ -22,14 +20,19 @@ toastView.textColor = .white
 let toast = Toast(toastView)
 ```
 
-`Toast` need a view. It can be any `UIView` instance.
+When you want to show a toast, you first instantiate the `Toast` class. 
+
+You also need to pass a `UIView` instance as the view on which the toast will be displayed.
 
 ⚠️ It is recommended that the toast view has its own size.
 
 ```swift
 toast.show(
     withDuration: 3,
-    layouts: [.inside(of: .bottom), .center(of: .x)]
+    layouts: [
+        .inside(of: .bottom), 
+        .center(of: .x)
+    ]
 )
 ```  
 
@@ -40,77 +43,84 @@ toast.show(
 <img src="https://user-images.githubusercontent.com/11141077/136569217-2651f483-4acb-40fa-88e7-846e75ba6a72.gif" width=300 />
 
 ## Position
-`Toast`'s `show` function receive `Position` parameter.
-
-It describe about where the toast will appear.
-
 ```swift
-extension Toast.Position {
-    // Toast will locate inside of target view with offset.
-    public static func inside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
-        .init(layout: InsideLayout(offset, of: anchor))
+public extension Layout where Self == InsideLayout {
+    static func inside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
+        InsideLayout(offset, of: anchor)
     }
-    
-    // Toast will locate outside of target view with offset.
-    public static func outside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
-        .init(layout: OutsideLayout(offset, of: anchor))
+}
+
+public extension Layout where Self == OutsideLayout {
+    static func outside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
+        OutsideLayout(offset, of: anchor)
     }
-    
-    // Toast will locate center of axis of target view with offset.
-    public static func center(_ offset: CGFloat = 0, of axis: Axis) -> Self {
-        .init(layout: CenterLayout(offset, of: axis))
+}
+
+public extension Layout where Self == CenterLayout {
+    static func center(_ offset: CGFloat = 0, of axis: Axis) -> Self {
+        CenterLayout(offset, of: axis)
     }
 }
 ```
+
+To set the position of the `Toast`, the `show` method uses the `layouts` parameter.
+
+It describes the position where the toast will be displayed.
+
+
+```swift
+// `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis.
+toast.show(
+    withDuration: 3,
+    layouts: [
+        .outside(of: .top), 
+        .center(of: .x)
+    ],
+    target: showButton
+)
+```
+<img src="https://user-images.githubusercontent.com/11141077/136571290-fd792ec8-51c8-4929-a4b5-a6ffdd9e635a.gif" width=300 />
 
 And let's see toast `show` function again.
 
-```swift
-toast.show(
-    withDuration: 3,
-    // `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis. 
-    layouts: [.inside(of: .bottom), .center(of: .x)],
-    target: someView
-)
-```
-
-<img src="https://user-images.githubusercontent.com/11141077/136571290-fd792ec8-51c8-4929-a4b5-a6ffdd9e635a.gif" width=300 />
-
-In actually `Toast` reflect to base layer and attached.
+In actuality, the Toast is reflected onto a full-screen window and attached to it.
 
 ## Animation
-You can set animations about how to appear the toast, how to disappear the toast.
+```swift
+public extension Animation where Self == FadeInAnimation {
+    static func fadeIn(duration: TimeInterval) -> Self {
+        FadeInAnimation(duration: duration)
+    }
+}
+
+public extension Animation where Self == FadeOutAnimation {
+    static func fadeOut(duration: TimeInterval) -> Self {
+        FadeOutAnimation(duration: duration)
+    }
+}
+
+public extension Animation where Self == SlideInAnimation {
+    static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
+        SlideInAnimation(duration: duration, direction: direction, offset: offset)
+    }
+}
+```
+
+You can set animations for the Toast to control how it appears and disappears.
+
+The `JSToast` provides default animations for appearing and disappearing the toast.
 
 ```swift
 toast.show(
     withDuration: 3,
     // `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis. 
-    layouts: [.inside(of: .bottom), .center(of: .x)],
+    layouts: [
+        .inside(of: .bottom),
+        .center(of: .x)
+    ],
     showAnimation: .fadeIn(duration: 0.3),
     hideAnimation: .fadeOut(duration: 0.3)
 )
-```
-
-`JSToast` serve default animations below.
-
-```swift
-extension Toast.Animator {
-    public static func fadeIn(duration: TimeInterval) -> Self {
-        .init(animation: FadeInAnimation(duration: duration))
-    }
-    
-    public static func fadeOut(duration: TimeInterval) -> Self {
-        .init(animation: FadeOutAnimation(duration: duration))
-    }
-    
-    public static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        .init(animation: SlideInAnimation(duration: duration, direction: direction, offset: offset))
-    }
-    
-    public static func slideOut(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        .init(animation: SlideOutAnimation(duration: duration, direction: direction, offset: offset))
-    }
-}
 ```
 
 If you want to customize toast animation, define animation through adapt `Animation`
@@ -119,28 +129,6 @@ If you want to customize toast animation, define animation through adapt `Animat
 public protocol Animation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
 }
-```
-
-And add your animation into extension like this.
-
-```swift
-extension Toast.Animator {
-    public static func your_in_animation(duration: TimeIntervale) -> Self {
-        .init(animation: YourInAnimation(duration: duration))
-    }
-    
-    public static func your_out_animation(duration: TimeIntervale) -> Self {
-        .init(animation: YourOutAnimation(duration: duration))
-    }
-}
-```
-```swift
-toast.show(
-    withDuration: 3, 
-    at: [.inside(of: .bottom), .center(of: .x)],
-    show: .your_in_animation(duration: 0.3),
-    hide: .your_out_animation(duration: 0.3),
-)
 ```
 
 ## Advanced
