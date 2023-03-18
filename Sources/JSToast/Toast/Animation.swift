@@ -16,6 +16,7 @@ public enum Direction {
 
 public protocol Animation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
+    func cancel()
 }
 
 public extension Animation where Self == FadeInAnimation {
@@ -43,8 +44,10 @@ public extension Animation where Self == SlideOutAnimation {
 }
 
 // MARK: - FadeInAnimator
-public struct FadeInAnimation: Animation {
+public class FadeInAnimation: Animation {
     private let duration: TimeInterval
+    
+    private var animator: UIViewPropertyAnimator?
     
     public init(duration: TimeInterval = 0.3) {
         self.duration = duration
@@ -53,17 +56,31 @@ public struct FadeInAnimation: Animation {
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         view.alpha = 0
         
-        UIView.animate(withDuration: duration) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
             view.alpha = 1
-        } completion: {
-            completion($0)
         }
+        
+        animator.addCompletion {
+            completion($0 == .end)
+        }
+        
+        animator.startAnimation()
+        
+        self.animator = animator
+    }
+    
+    public func cancel() {
+        animator?.stopAnimation(false)
+        animator?.finishAnimation(at: .current)
+        animator = nil
     }
 }
 
 // MARK: - FadeOutAnimator
-public struct FadeOutAnimation: Animation {
+public class FadeOutAnimation: Animation {
     private let duration: TimeInterval
+    
+    private var animator: UIViewPropertyAnimator?
     
     public init(duration: TimeInterval = 0.3) {
         self.duration = duration
@@ -72,20 +89,34 @@ public struct FadeOutAnimation: Animation {
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         view.alpha = 1
         
-        UIView.animate(withDuration: duration) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
             view.alpha = 0
-        } completion: {
-            completion($0)
         }
+        
+        animator.addCompletion {
+            completion($0 == .end)
+        }
+        
+        animator.startAnimation()
+        
+        self.animator = animator
+    }
+    
+    public func cancel() {
+        animator?.stopAnimation(false)
+        animator?.finishAnimation(at: .current)
+        animator = nil
     }
 }
 
 // MARK: - SlideInAnimator
-public struct SlideInAnimation: Animation {
+public class SlideInAnimation: Animation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
     private let offset: CGFloat?
+    
+    private var animator: UIViewPropertyAnimator?
     
     // MARK: - Initializer
     public init(duration: TimeInterval = 0.3, direction: Direction, offset: CGFloat? = nil) {
@@ -98,13 +129,26 @@ public struct SlideInAnimation: Animation {
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         let offset = offset ?? offset(direction: direction, withTarget: view)
         
+        view.alpha = 1
         view.transform = transform(direction: direction, offset: offset)
         
-        UIView.animate(withDuration: duration) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
             view.transform = .identity
-        } completion: {
-            completion($0)
         }
+        
+        animator.addCompletion {
+            completion($0 == .end)
+        }
+        
+        animator.startAnimation()
+        
+        self.animator = animator
+    }
+    
+    public func cancel() {
+        animator?.stopAnimation(false)
+        animator?.finishAnimation(at: .current)
+        animator = nil
     }
     
     // MARK: - Private
@@ -145,11 +189,13 @@ public struct SlideInAnimation: Animation {
 }
 
 // MARK: - SlideOutAnimator
-public struct SlideOutAnimation: Animation {
+public class SlideOutAnimation: Animation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
     private let offset: CGFloat?
+    
+    private var animator: UIViewPropertyAnimator?
     
     // MARK: - Initializer
     public init(duration: TimeInterval = 0.3, direction: Direction, offset: CGFloat? = nil) {
@@ -162,11 +208,24 @@ public struct SlideOutAnimation: Animation {
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         let offset = offset ?? offset(direction: direction, withTarget: view)
         
-        UIView.animate(withDuration: duration) {
-            view.transform = transform(direction: direction, offset: offset)
-        } completion: {
-            completion($0)
+        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) { [weak self] in
+            guard let self else { return }
+            view.transform = self.transform(direction: self.direction, offset: offset)
         }
+        
+        animator.addCompletion {
+            completion($0 == .end)
+        }
+        
+        animator.startAnimation()
+        
+        self.animator = animator
+    }
+    
+    public func cancel() {
+        animator?.stopAnimation(false)
+        animator?.finishAnimation(at: .current)
+        animator = nil
     }
     
     // MARK: - Private
