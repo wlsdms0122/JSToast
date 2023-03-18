@@ -71,7 +71,7 @@ public class Toast: Equatable {
             return self
         }
         
-        let window = ContentResponderWindow(windowScene: scene)
+        let window = self.window ?? ContentResponderWindow(windowScene: scene)
         window.isHidden = false
         
         self.window = window
@@ -216,6 +216,10 @@ public class Toast: Equatable {
                 constant: boundary.left
             )
         ]
+    }
+    
+    deinit {
+        window?.isHidden = true
     }
 }
 
