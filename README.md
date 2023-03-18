@@ -1,11 +1,25 @@
-# JSToaster
-`JSToaster` is fully customizable toast package.
+# JSToast
+`JSToast` is fully customizable toast package.
 
+- [JSToast](#jstoast)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [Swift Pacakge Manager](#swift-pacakge-manager)
+- [How to use](#how-to-use)
+  - [Position](#position)
+  - [Animation](#animation)
+  - [Advanced](#advanced)
+  - [SwiftUI support](#swiftui-support)
+- [Contribution](#contribution)
+- [License](#license)
+
+# Requirements
+- iOS 13.0+ (needs 14.0+ on `SwiftUI`)
 # Installation
-### Swift Pacakge Manager
+## Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.1.0")
+    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.2.0")
 ]
 ```
 
@@ -135,6 +149,33 @@ public protocol Animation {
 `Toast` is work standalone. But if you want to more complex work or limit operations for your application system, I recommended to create own `Toast` manager like `Toaster`.
 
 `Toaster` is manage `Toast` to ensure that showing only one.
+
+## SwiftUI support
+```swift
+struct SampleView: View {
+    var body: some View {
+        Text("Hello World")
+            .toast(
+                $isShow,
+                duration: 2,
+                layout: [
+                    .outside(of: .top),
+                    .center(of: .x)
+                ]
+            ) {
+                Text("Toast View")
+                    .background(Color.blue)
+            }
+    }
+
+    @State
+    var isShow: Bool = false
+}
+```
+
+You can use `JSToast` on `SwiftUI` using `.toast(_:layouts:)` view modifier.
+
+All interface equal with `UIKit`. See more [How to use](#how-to-use) section.
 
 # Contribution
 

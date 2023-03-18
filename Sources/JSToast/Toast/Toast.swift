@@ -24,6 +24,7 @@ public class Toast: Equatable {
             NSLayoutConstraint.activate(constraints)
         }
     }
+    private var currentAnimation: Animation?
     
     private var timer: Timer? {
         didSet {
@@ -70,7 +71,7 @@ public class Toast: Equatable {
             return self
         }
         
-        let window = ContentResponderWindow(windowScene: scene)
+        let window = self.window ?? ContentResponderWindow(windowScene: scene)
         window.isHidden = false
         
         self.window = window
@@ -93,6 +94,7 @@ public class Toast: Equatable {
         )
         
         // Show with animation.
+        currentAnimation?.cancel()
         showAnimation.play(view) { shown?($0) }
         
         if let duration = duration {
@@ -102,6 +104,8 @@ public class Toast: Equatable {
                 hide(animation: hideAnimation) { hidden?($0) }
             }
         }
+        
+        self.currentAnimation = showAnimation
         
         return self
     }
@@ -116,10 +120,13 @@ public class Toast: Equatable {
         completion: ((Bool) -> Void)? = nil
     ) {
         // Hide whith animation.
+        currentAnimation?.cancel()
         animation.play(view) { [self] in
             view.removeFromSuperview()
             completion?($0)
         }
+        
+        currentAnimation = animation
     }
     
     /// Update toast layout.
@@ -209,6 +216,10 @@ public class Toast: Equatable {
                 constant: boundary.left
             )
         ]
+    }
+    
+    deinit {
+        window?.isHidden = true
     }
 }
 
