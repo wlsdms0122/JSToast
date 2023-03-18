@@ -225,8 +225,10 @@ public class Toast: Equatable {
 
 public extension Toast {
     convenience init<V: View>(_ view: V) {
-        let viewController = UIHostingController(rootView: view)
-        self.init(viewController.view)
+        let view = UIHostingController(rootView: view).view!
+        view.backgroundColor = .clear
+        
+        self.init(view)
     }
     
     convenience init<V: View>(@ViewBuilder _ content: () -> V) {
