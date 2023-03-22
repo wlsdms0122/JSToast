@@ -20,26 +20,55 @@ public protocol ToastAnimation {
 }
 
 public extension ToastAnimation where Self == FadeInAnimation {
-    static func fadeIn(duration: TimeInterval) -> Self {
-        FadeInAnimation(duration: duration)
+    static func fadeIn(
+        duration: TimeInterval,
+        curve: UIView.AnimationCurve = .easeInOut
+    ) -> Self {
+        FadeInAnimation(duration: duration, curve: curve)
     }
 }
 
 public extension ToastAnimation where Self == FadeOutAnimation {
-    static func fadeOut(duration: TimeInterval) -> Self {
-        FadeOutAnimation(duration: duration)
+    static func fadeOut(
+        duration: TimeInterval,
+        curve: UIView.AnimationCurve = .easeInOut
+    ) -> Self {
+        FadeOutAnimation(
+            duration: duration,
+            curve: curve
+        )
     }
 }
 
 public extension ToastAnimation where Self == SlideInAnimation {
-    static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        SlideInAnimation(duration: duration, direction: direction, offset: offset)
+    static func slideIn(
+        duration: TimeInterval,
+        direction: Direction,
+        curve: UIView.AnimationCurve = .easeInOut,
+        offset: CGFloat? = nil
+    ) -> Self {
+        SlideInAnimation(
+            duration: duration,
+            direction: direction,
+            curve: curve,
+            offset: offset
+        )
     }
 }
 
 public extension ToastAnimation where Self == SlideOutAnimation {
-    static func slideOut(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        SlideOutAnimation(duration: duration, direction: direction, offset: offset)
+    static func slideOut(
+        duration: TimeInterval,
+        direction: Direction,
+        curve: UIView.AnimationCurve = .easeInOut,
+        offset: CGFloat? = nil
+    ) -> Self {
+        SlideOutAnimation(
+            duration: duration,
+            direction: direction,
+            curve: curve,
+            offset: offset
+        )
     }
 }
 
