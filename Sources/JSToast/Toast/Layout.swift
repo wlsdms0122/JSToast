@@ -46,6 +46,14 @@ public extension Layout {
     ) -> Self where Self == CenterLayout {
         CenterLayout(offset, of: axis, ignoresSafeArea: ignoresSafeArea)
     }
+    
+    static func width(_ width: CGFloat) -> Self where Self == WidthLayout {
+        WidthLayout(width)
+    }
+    
+    static func height(_ height: CGFloat) -> Self where Self == HeightLayout {
+        HeightLayout(height)
+    }
 }
 
 public struct ViewLayout: Layout {
@@ -83,6 +91,14 @@ public struct ViewLayout: Layout {
         of axis: Axis
     ) -> ViewLayout {
         ViewLayout(.center(offset, of: axis, ignoresSafeArea: true))
+    }
+    
+    public static func width(_ width: CGFloat) -> ViewLayout {
+        ViewLayout(.width(width))
+    }
+    
+    public static func height(_ height: CGFloat) -> ViewLayout {
+        ViewLayout(.height(height))
     }
     
     // MARK: - Private
@@ -252,6 +268,52 @@ public struct CenterLayout: Layout {
     }
     
     // MARK: - Public
+    
+    // MARK: - Private
+}
 
+// MARK: - Width Layout
+public struct WidthLayout: Layout {
+    // MARK: - Property
+    private let width: CGFloat
+    
+    // MARK: - Initializer
+    init(_ width: CGFloat) {
+        self.width = width
+    }
+    
+    // MARK: - Lifecylcle
+    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+        let constraint = lhs.widthAnchor.constraint(equalToConstant: width)
+        constraint.priority = .init(rawValue: 999)
+        
+        return constraint
+    }
+    
+    // MARK: - Public
+    
+    // MARK: - Private
+}
+
+// MARK: - Height Layout
+public struct HeightLayout: Layout {
+    // MARK: - Property
+    private let height: CGFloat
+    
+    // MARK: - Initializer
+    init(_ height: CGFloat) {
+        self.height = height
+    }
+    
+    // MARK: - Lifecylcle
+    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+        let constraint = lhs.heightAnchor.constraint(equalToConstant: height)
+        constraint.priority = .init(rawValue: 999)
+        
+        return constraint
+    }
+    
+    // MARK: - Public
+    
     // MARK: - Private
 }
