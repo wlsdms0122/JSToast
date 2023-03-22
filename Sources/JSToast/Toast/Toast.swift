@@ -24,7 +24,7 @@ public class Toast: Equatable {
             NSLayoutConstraint.activate(constraints)
         }
     }
-    private var currentAnimation: Animation?
+    private var currentAnimation: ToastAnimation?
     
     private var timer: Timer? {
         didSet {
@@ -50,6 +50,8 @@ public class Toast: Equatable {
     ///   - target: The target is the reference for where the toast will be shown. Default value is `nil`, if value is `nil`, the target is same as `layer`.
     ///   - scene: The scene where the toast will attach. Default value is `nil`. If value is `nil`, the toast will attach to scene in foreground active state.
     ///   - boundary: The boundary insets is maximum layout guideline. Default value is `.zero`.
+    ///     The boundary work on safe area default. If you want to change base to superview, sset `ignoresSafeArea` parameter to `true`.
+    ///   - ignoresSafeArea: Ignores safe area to set boundary. Default value is `false`.
     ///   - showAnimation: The animation to be played when appearing. Default value is `fadeIn(duration: 0.3)`.
     ///   - hideAnimation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - shown: The shown completion handler with success. Default value is `nil`.
@@ -61,8 +63,9 @@ public class Toast: Equatable {
         target: UIView? = nil,
         scene: UIWindowScene? = nil,
         boundary: UIEdgeInsets = .zero,
-        showAnimation: Animation = .fadeIn(duration: 0.3),
-        hideAnimation: Animation = .fadeOut(duration: 0.3),
+        ignoresSafeArea: Bool = false,
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) -> Toast {
@@ -90,7 +93,8 @@ public class Toast: Equatable {
             of: view,
             target: target ?? window,
             layer: window,
-            boundary: boundary
+            boundary: boundary,
+            ignoresSafeArea: ignoresSafeArea
         )
         
         // Show with animation.
@@ -116,7 +120,7 @@ public class Toast: Equatable {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success.
     open func hide(
-        animation: Animation,
+        animation: ToastAnimation,
         completion: ((Bool) -> Void)? = nil
     ) {
         // Hide whith animation.
@@ -138,7 +142,8 @@ public class Toast: Equatable {
     open func update(
         layouts: [Layout],
         target: UIView? = nil,
-        boundary: UIEdgeInsets = .zero
+        boundary: UIEdgeInsets = .zero,
+        ignoresSafeArea: Bool = false
     ) {
         guard let layer = view.superview else { return }
         let target = target ?? layer
@@ -157,7 +162,8 @@ public class Toast: Equatable {
             let boundaryConstraints = makeBoundaryConstraints(
                 view: view,
                 layer: layer,
-                boundary: boundary
+                boundary: boundary,
+                ignoresSafeArea: ignoresSafeArea
             )
             
             constraints = layoutConstraints + boundaryConstraints
@@ -172,7 +178,8 @@ public class Toast: Equatable {
         of view: UIView,
         target: UIView,
         layer: UIView,
-        boundary: UIEdgeInsets
+        boundary: UIEdgeInsets,
+        ignoresSafeArea: Bool
     ) {
         // Set layout constraints of toast.
         let layoutConstraints = layouts.map {
@@ -187,7 +194,8 @@ public class Toast: Equatable {
         let boundaryConstraints = makeBoundaryConstraints(
             view: view,
             layer: layer,
-            boundary: boundary
+            boundary: boundary,
+            ignoresSafeArea: ignoresSafeArea
         )
         
         constraints = layoutConstraints + boundaryConstraints
@@ -196,23 +204,26 @@ public class Toast: Equatable {
     private func makeBoundaryConstraints(
         view: UIView,
         layer: UIView,
-        boundary: UIEdgeInsets
+        boundary: UIEdgeInsets,
+        ignoresSafeArea: Bool
     ) -> [NSLayoutConstraint] {
-        [
+        let safeArea = layer.safeAreaLayoutGuide
+        
+        return [
             view.topAnchor.constraint(
-                greaterThanOrEqualTo: layer.safeAreaLayoutGuide.topAnchor,
+                greaterThanOrEqualTo: ignoresSafeArea ? layer.topAnchor : safeArea.topAnchor,
                 constant: boundary.top
             ),
             view.trailingAnchor.constraint(
-                lessThanOrEqualTo: layer.safeAreaLayoutGuide.trailingAnchor,
+                lessThanOrEqualTo: ignoresSafeArea ? layer.trailingAnchor : safeArea.trailingAnchor,
                 constant: -boundary.right
             ),
             view.bottomAnchor.constraint(
-                lessThanOrEqualTo: layer.safeAreaLayoutGuide.bottomAnchor,
+                lessThanOrEqualTo: ignoresSafeArea ? layer.bottomAnchor : safeArea.bottomAnchor,
                 constant: -boundary.bottom
             ),
             view.leadingAnchor.constraint(
-                greaterThanOrEqualTo: layer.safeAreaLayoutGuide.leadingAnchor,
+                greaterThanOrEqualTo: ignoresSafeArea ? layer.leadingAnchor : safeArea.leadingAnchor,
                 constant: boundary.left
             )
         ]
@@ -225,10 +236,11 @@ public class Toast: Equatable {
 
 public extension Toast {
     convenience init<V: View>(_ view: V) {
-        let view = UIHostingController(rootView: view).view!
-        view.backgroundColor = .clear
+        let viewController = UIHostingController(rootView: view)
+        viewController._disableSafeArea = true
+        viewController.view.backgroundColor = .clear
         
-        self.init(view)
+        self.init(viewController.view)
     }
     
     convenience init<V: View>(@ViewBuilder _ content: () -> V) {

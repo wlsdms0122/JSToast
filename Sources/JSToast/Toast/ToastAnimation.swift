@@ -14,37 +14,37 @@ public enum Direction {
     case left
 }
 
-public protocol Animation {
+public protocol ToastAnimation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
     func cancel()
 }
 
-public extension Animation where Self == FadeInAnimation {
+public extension ToastAnimation where Self == FadeInAnimation {
     static func fadeIn(duration: TimeInterval) -> Self {
         FadeInAnimation(duration: duration)
     }
 }
 
-public extension Animation where Self == FadeOutAnimation {
+public extension ToastAnimation where Self == FadeOutAnimation {
     static func fadeOut(duration: TimeInterval) -> Self {
         FadeOutAnimation(duration: duration)
     }
 }
 
-public extension Animation where Self == SlideInAnimation {
+public extension ToastAnimation where Self == SlideInAnimation {
     static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
         SlideInAnimation(duration: duration, direction: direction, offset: offset)
     }
 }
 
-public extension Animation where Self == SlideOutAnimation {
+public extension ToastAnimation where Self == SlideOutAnimation {
     static func slideOut(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
         SlideOutAnimation(duration: duration, direction: direction, offset: offset)
     }
 }
 
 // MARK: - FadeInAnimator
-public class FadeInAnimation: Animation {
+public class FadeInAnimation: ToastAnimation {
     private let duration: TimeInterval
     
     private var animator: UIViewPropertyAnimator?
@@ -77,7 +77,7 @@ public class FadeInAnimation: Animation {
 }
 
 // MARK: - FadeOutAnimator
-public class FadeOutAnimation: Animation {
+public class FadeOutAnimation: ToastAnimation {
     private let duration: TimeInterval
     
     private var animator: UIViewPropertyAnimator?
@@ -110,7 +110,7 @@ public class FadeOutAnimation: Animation {
 }
 
 // MARK: - SlideInAnimator
-public class SlideInAnimation: Animation {
+public class SlideInAnimation: ToastAnimation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
@@ -189,7 +189,7 @@ public class SlideInAnimation: Animation {
 }
 
 // MARK: - SlideOutAnimator
-public class SlideOutAnimation: Animation {
+public class SlideOutAnimation: ToastAnimation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction

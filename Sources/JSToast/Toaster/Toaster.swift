@@ -26,6 +26,8 @@ open class Toaster {
     ///   - target: The target is the reference for where the toast will be shown. Default value is `nil`, if value is `nil`, the target is same as `layer`.
     ///   - scene: The layer where the toast will attach. Default value is `nil`. If value is `nil`, the toast will attach to key window.
     ///   - boundary: The boundary insets is maximum layout guideline. Default value is `.zero`.
+    ///     The boundary work on safe area default. If you want to change base to superview, sset `ignoresSafeArea` parameter to `true`.
+    ///   - ignoresSafeArea: Ignores safe area to set boundary. Default value is `false`.
     ///   - showAnimation: The animation to be played when appearing. Default value is `fadeIn(duration: 0.3)`.
     ///   - hideAnimation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - cancelAnimation: The animation to be played when cancelled. Default value is `fadeOut(duration: 0.3)`.
@@ -38,9 +40,10 @@ open class Toaster {
         target: UIView? = nil,
         scene: UIWindowScene? = nil,
         boundary: UIEdgeInsets = .zero,
-        showAnimation: Animation = .fadeIn(duration: 0.3),
-        hideAnimation: Animation = .fadeOut(duration: 0.3),
-        cancelAnimation: Animation = .fadeOut(duration: 0.3),
+        ignoresSafeArea: Bool = false,
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
+        cancelAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) {
@@ -53,6 +56,7 @@ open class Toaster {
             target: target,
             scene: scene,
             boundary: boundary,
+            ignoresSafeArea: ignoresSafeArea,
             showAnimation: showAnimation,
             shown: shown
         )
@@ -73,7 +77,7 @@ open class Toaster {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success. Default value is `nil`.
     open func hideToast(
-        animation: Animation = .fadeOut(duration: 0.3),
+        animation: ToastAnimation = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
         let toast = self.toast
