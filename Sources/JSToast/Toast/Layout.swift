@@ -73,8 +73,7 @@ public struct ViewLayout: Layout {
     // MARK: - Public
     public static func inside(
         _ offset: CGFloat = 0,
-        of anchor: Anchor,
-        ignoresSafeArea: Bool = false
+        of anchor: Anchor
     ) -> ViewLayout {
         ViewLayout(.inside(offset, of: anchor, ignoresSafeArea: true))
     }
