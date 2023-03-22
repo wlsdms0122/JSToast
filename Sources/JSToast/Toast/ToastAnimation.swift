@@ -46,17 +46,22 @@ public extension ToastAnimation where Self == SlideOutAnimation {
 // MARK: - FadeInAnimator
 public class FadeInAnimation: ToastAnimation {
     private let duration: TimeInterval
+    private let curve: UIView.AnimationCurve
     
     private var animator: UIViewPropertyAnimator?
     
-    public init(duration: TimeInterval = 0.3) {
+    public init(
+        duration: TimeInterval = 0.3,
+        curve: UIView.AnimationCurve = .easeInOut
+    ) {
         self.duration = duration
+        self.curve = curve
     }
     
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         view.alpha = 0
         
-        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
             view.alpha = 1
         }
         
@@ -79,17 +84,22 @@ public class FadeInAnimation: ToastAnimation {
 // MARK: - FadeOutAnimator
 public class FadeOutAnimation: ToastAnimation {
     private let duration: TimeInterval
+    private let curve: UIView.AnimationCurve
     
     private var animator: UIViewPropertyAnimator?
     
-    public init(duration: TimeInterval = 0.3) {
+    public init(
+        duration: TimeInterval = 0.3,
+        curve: UIView.AnimationCurve = .easeInOut
+    ) {
         self.duration = duration
+        self.curve = curve
     }
     
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         view.alpha = 1
         
-        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
             view.alpha = 0
         }
         
@@ -114,14 +124,21 @@ public class SlideInAnimation: ToastAnimation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
+    private let curve: UIView.AnimationCurve
     private let offset: CGFloat?
     
     private var animator: UIViewPropertyAnimator?
     
     // MARK: - Initializer
-    public init(duration: TimeInterval = 0.3, direction: Direction, offset: CGFloat? = nil) {
+    public init(
+        duration: TimeInterval = 0.3,
+        direction: Direction,
+        curve: UIView.AnimationCurve = .easeInOut,
+        offset: CGFloat? = nil
+    ) {
         self.duration = duration
         self.direction = direction
+        self.curve = curve
         self.offset = offset
     }
     
@@ -132,7 +149,7 @@ public class SlideInAnimation: ToastAnimation {
         view.alpha = 1
         view.transform = transform(direction: direction, offset: offset)
         
-        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
             view.transform = .identity
         }
         
@@ -193,14 +210,21 @@ public class SlideOutAnimation: ToastAnimation {
     // MARK: - Property
     private let duration: TimeInterval
     private let direction: Direction
+    private let curve: UIView.AnimationCurve
     private let offset: CGFloat?
     
     private var animator: UIViewPropertyAnimator?
     
     // MARK: - Initializer
-    public init(duration: TimeInterval = 0.3, direction: Direction, offset: CGFloat? = nil) {
+    public init(
+        duration: TimeInterval = 0.3,
+        direction: Direction,
+        curve: UIView.AnimationCurve = .easeInOut,
+        offset: CGFloat? = nil
+    ) {
         self.duration = duration
         self.direction = direction
+        self.curve = curve
         self.offset = offset
     }
     
@@ -208,7 +232,7 @@ public class SlideOutAnimation: ToastAnimation {
     public func play(_ view: UIView, completion: @escaping (Bool) -> Void) {
         let offset = offset ?? offset(direction: direction, withTarget: view)
         
-        let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) { [weak self] in
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) { [weak self] in
             guard let self else { return }
             view.transform = self.transform(direction: self.direction, offset: offset)
         }
