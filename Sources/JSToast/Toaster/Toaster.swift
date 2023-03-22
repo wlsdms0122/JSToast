@@ -38,9 +38,10 @@ open class Toaster {
         target: UIView? = nil,
         scene: UIWindowScene? = nil,
         boundary: UIEdgeInsets = .zero,
-        showAnimation: Animation = .fadeIn(duration: 0.3),
-        hideAnimation: Animation = .fadeOut(duration: 0.3),
-        cancelAnimation: Animation = .fadeOut(duration: 0.3),
+        ignoresSafeArea: Bool = false,
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
+        cancelAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) {
@@ -73,7 +74,7 @@ open class Toaster {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success. Default value is `nil`.
     open func hideToast(
-        animation: Animation = .fadeOut(duration: 0.3),
+        animation: ToastAnimation = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
         let toast = self.toast

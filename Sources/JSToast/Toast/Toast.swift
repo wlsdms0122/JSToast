@@ -24,7 +24,7 @@ public class Toast: Equatable {
             NSLayoutConstraint.activate(constraints)
         }
     }
-    private var currentAnimation: Animation?
+    private var currentAnimation: ToastAnimation?
     
     private var timer: Timer? {
         didSet {
@@ -61,8 +61,8 @@ public class Toast: Equatable {
         target: UIView? = nil,
         scene: UIWindowScene? = nil,
         boundary: UIEdgeInsets = .zero,
-        showAnimation: Animation = .fadeIn(duration: 0.3),
-        hideAnimation: Animation = .fadeOut(duration: 0.3),
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) -> Toast {
@@ -116,7 +116,7 @@ public class Toast: Equatable {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success.
     open func hide(
-        animation: Animation,
+        animation: ToastAnimation,
         completion: ((Bool) -> Void)? = nil
     ) {
         // Hide whith animation.

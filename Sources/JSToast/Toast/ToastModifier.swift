@@ -18,10 +18,10 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
     public var duration: TimeInterval?
     public var layouts: [JSToast.Layout]
     public var boundary: EdgeInsets
-    public var showAnimation: JSToast.Animation
-    public var hideAnimation: JSToast.Animation
     public var shown: ((Bool) -> Void)?
     public var hidden: ((Bool) -> Void)?
+    private let showAnimation: ToastAnimation
+    private let hideAnimation: ToastAnimation
     
     @StateObject
     private var toast: Toast
@@ -33,8 +33,8 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
         duration: TimeInterval? = nil,
         layouts: [JSToast.Layout],
         boundary: EdgeInsets = .init(.zero),
-        showAnimation: JSToast.Animation = .fadeIn(duration: 0.3),
-        hideAnimation: JSToast.Animation = .fadeOut(duration: 0.3),
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil,
         @ViewBuilder toast: @escaping () -> ToastContent
@@ -98,8 +98,8 @@ public extension View {
         duration: TimeInterval? = nil,
         layouts: [JSToast.Layout],
         boundary: EdgeInsets = .init(.zero),
-        showAnimation: JSToast.Animation = .fadeIn(duration: 0.3),
-        hideAnimation: JSToast.Animation = .fadeOut(duration: 0.3),
+        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
+        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil,
         @ViewBuilder toast: @escaping () -> ToastContent
