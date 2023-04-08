@@ -61,6 +61,7 @@ class ToastContainer<ToastContent: View>: ObservableObject {
 public struct ToastModifier<ToastContent: View>: ViewModifier {
     private let duration: TimeInterval?
     private let layouts: [Layout]
+    private let scene: UIWindowScene?
     private let boundary: EdgeInsets
     private let showAnimation: ToastAnimation
     private let hideAnimation: ToastAnimation
@@ -79,6 +80,7 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
         _ isShow: Binding<Bool>,
         duration: TimeInterval? = nil,
         layouts: [ViewLayout],
+        scene: UIWindowScene? = nil,
         boundary: EdgeInsets = .init(.zero),
         showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
         hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
@@ -91,6 +93,7 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
         
         self.duration = duration
         self.layouts = layouts
+        self.scene = scene
         self.boundary = boundary
         self.showAnimation = showAnimation
         self.hideAnimation = hideAnimation
@@ -120,6 +123,7 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
                     withDuration: duration,
                     layouts: layouts,
                     target: dummyView,
+                    scene: scene,
                     boundary: boundary,
                     showAnimation: showAnimation,
                     hideAnimation: hideAnimation,
@@ -145,6 +149,7 @@ public extension View {
         _ isShow: Binding<Bool>,
         duration: TimeInterval? = nil,
         layouts: [ViewLayout],
+        scene: UIWindowScene? = nil,
         boundary: EdgeInsets = .init(.zero),
         showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
         hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
@@ -156,6 +161,7 @@ public extension View {
             isShow,
             duration: duration,
             layouts: layouts,
+            scene: scene,
             boundary: boundary,
             showAnimation: showAnimation,
             hideAnimation: hideAnimation,
