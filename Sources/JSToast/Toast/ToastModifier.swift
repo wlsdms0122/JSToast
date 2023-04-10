@@ -17,23 +17,23 @@ class ToastContainer<ToastContent: View>: ObservableObject {
     }
     
     func show(
-        withDuration duration: TimeInterval? = nil,
-        layouts: [Layout],
-        target: UIView? = nil,
-        scene: UIWindowScene? = nil,
-        boundary: EdgeInsets = .init(.zero),
-        showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
-        hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
-        shown: ((Bool) -> Void)? = nil,
-        hidden: ((Bool) -> Void)? = nil
+        withDuration duration: TimeInterval?,
+        layouts: [any Layout],
+        layer: UIView?,
+        boundary: EdgeInsets,
+        scene: UIWindowScene?,
+        showAnimation: ToastAnimation,
+        hideAnimation: ToastAnimation,
+        shown: ((Bool) -> Void)?,
+        hidden: ((Bool) -> Void)?
     ) {
         toast = Toast(content).show(
             withDuration: duration,
             layouts: layouts,
-            target: target,
-            scene: scene,
+            layer: layer,
             boundary: UIEdgeInsets(boundary),
             ignoresSafeArea: true,
+            scene: scene,
             showAnimation: showAnimation,
             hideAnimation: hideAnimation,
             shown: shown,
@@ -60,7 +60,7 @@ class ToastContainer<ToastContent: View>: ObservableObject {
 @available(iOS 14.0, *)
 public struct ToastModifier<ToastContent: View>: ViewModifier {
     private let duration: TimeInterval?
-    private let layouts: [Layout]
+    private let layouts: [ViewLayout]
     private let scene: UIWindowScene?
     private let boundary: EdgeInsets
     private let showAnimation: ToastAnimation
@@ -121,10 +121,10 @@ public struct ToastModifier<ToastContent: View>: ViewModifier {
                 
                 container.show(
                     withDuration: duration,
-                    layouts: layouts,
-                    target: dummyView,
-                    scene: scene,
+                    layouts: layouts.map { $0.layout(dummyView) },
+                    layer: nil,
                     boundary: boundary,
+                    scene: scene,
                     showAnimation: showAnimation,
                     hideAnimation: hideAnimation,
                     shown: shown,

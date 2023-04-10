@@ -20,31 +20,44 @@ public enum Axis {
 }
 
 public protocol Layout {
-    func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint
+    func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint
 }
 
 public extension Layout {
     static func inside(
-        _ offset: CGFloat = 0,
-        of anchor: Anchor,
+        _ anchor: Anchor,
+        of target: UIView? = nil,
+        offset: CGFloat = 0,
         ignoresSafeArea: Bool = false
     ) -> Self where Self == InsideLayout {
-        InsideLayout(offset, of: anchor, ignoresSafeArea: ignoresSafeArea)
+        InsideLayout(
+            anchor,
+            of: target,
+            offset: offset,
+            ignoresSafeArea: ignoresSafeArea
+        )
     }
     
     static func outside(
-        _ offset: CGFloat = 0,
-        of anchor: Anchor
+        _ anchor: Anchor,
+        of target: UIView? = nil,
+        offset: CGFloat = 0
     ) -> Self where Self == OutsideLayout {
-        OutsideLayout(offset, of: anchor)
+        OutsideLayout(anchor, of: target, offset: offset)
     }
     
     static func center(
-        _ offset: CGFloat = 0,
-        of axis: Axis,
+        _ axis: Axis,
+        of target: UIView? = nil,
+        offset: CGFloat = 0,
         ignoresSafeArea: Bool = false
     ) -> Self where Self == CenterLayout {
-        CenterLayout(offset, of: axis, ignoresSafeArea: ignoresSafeArea)
+        CenterLayout(
+            axis,
+            of: target,
+            offset: offset,
+            ignoresSafeArea: ignoresSafeArea
+        )
     }
     
     static func width(_ width: CGFloat) -> Self where Self == WidthLayout {
@@ -56,48 +69,53 @@ public extension Layout {
     }
 }
 
-public struct ViewLayout: Layout {
+public struct ViewLayout {
     // MARK: - Property
-    private let layout: any Layout
+    let layout: (UIView?) -> any Layout
     
     // MARK: - Initializer
-    init(_ layout: any Layout) {
+    init(_ layout: @escaping (UIView?) -> any Layout) {
         self.layout = layout
-    }
-    
-    // MARK: - Lifecycle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
-        layout.makeConstraint(from: lhs, to: rhs, in: base)
     }
     
     // MARK: - Public
     public static func inside(
-        _ offset: CGFloat = 0,
-        of anchor: Anchor
+        _ anchor: Anchor,
+        offset: CGFloat = 0
     ) -> ViewLayout {
-        ViewLayout(.inside(offset, of: anchor, ignoresSafeArea: true))
+        ViewLayout { target in
+            .inside(anchor, of: target, offset: offset, ignoresSafeArea: true)
+        }
     }
     
     public static func outside(
-        _ offset: CGFloat = 0,
-        of anchor: Anchor
+        _ anchor: Anchor,
+        offset: CGFloat = 0
     ) -> ViewLayout {
-        ViewLayout(.outside(offset, of: anchor))
+        ViewLayout { target in
+            .outside(anchor, of: target, offset: offset)
+        }
     }
     
     public static func center(
-        _ offset: CGFloat = 0,
-        of axis: Axis
+        _ axis: Axis,
+        offset: CGFloat = 0
     ) -> ViewLayout {
-        ViewLayout(.center(offset, of: axis, ignoresSafeArea: true))
+        ViewLayout { target in
+            .center(axis, of: target, offset: offset, ignoresSafeArea: true)
+        }
     }
     
     public static func width(_ width: CGFloat) -> ViewLayout {
-        ViewLayout(.width(width))
+        ViewLayout { _ in
+            .width(width)
+        }
     }
     
     public static func height(_ height: CGFloat) -> ViewLayout {
-        ViewLayout(.height(height))
+        ViewLayout { _ in
+            .height(height)
+        }
     }
     
     // MARK: - Private
@@ -106,50 +124,53 @@ public struct ViewLayout: Layout {
 // MARK: - Inside Layout
 public struct InsideLayout: Layout {
     // MARK: - Property
-    private let offset: CGFloat
     private let anchor: Anchor
+    private let target: UIView?
+    private let offset: CGFloat
     private let ignoresSafeArea: Bool
     
     // MARK: - Initializer
     public init(
-        _ offset: CGFloat = 0,
-        of anchor: Anchor,
+        _ anchor: Anchor,
+        of target: UIView?,
+        offset: CGFloat = 0,
         ignoresSafeArea: Bool = false
     ) {
-        self.offset = offset
         self.anchor = anchor
+        self.target = target
+        self.offset = offset
         self.ignoresSafeArea = ignoresSafeArea
     }
     
     // MARK: - Lifecycle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
-        let rect = rhs.convert(rhs.bounds, to: base)
-        let safeArea = base.safeAreaLayoutGuide
+    public func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint {
+        let rect = target.map { $0.convert($0.bounds, to: rhs) } ?? rhs.bounds
+        let safeAreaInsets = target?.safeAreaInsets ?? rhs.safeAreaInsets
         
         let constraint: NSLayoutConstraint
         switch anchor {
         case .top:
             constraint = lhs.topAnchor.constraint(
-                equalTo: ignoresSafeArea ? base.topAnchor : safeArea.topAnchor,
-                constant: rect.minY + offset
+                equalTo: rhs.topAnchor,
+                constant: rect.minY + offset + (ignoresSafeArea ? 0 : safeAreaInsets.top)
             )
             
         case .trailing:
             constraint = lhs.trailingAnchor.constraint(
-                equalTo: ignoresSafeArea ? base.trailingAnchor : safeArea.trailingAnchor,
-                constant: -(base.bounds.width - rect.maxX + offset)
+                equalTo: rhs.trailingAnchor,
+                constant: -(rhs.bounds.width - rect.maxX + offset + (ignoresSafeArea ? 0 : safeAreaInsets.right))
             )
             
         case .bottom:
             constraint = lhs.bottomAnchor.constraint(
-                equalTo: ignoresSafeArea ? base.bottomAnchor: safeArea.bottomAnchor,
-                constant: -(base.bounds.height - rect.maxY + offset)
+                equalTo: rhs.bottomAnchor,
+                constant: -(rhs.bounds.height - rect.maxY + offset + (ignoresSafeArea ? 0 : safeAreaInsets.bottom))
             )
             
         case .leading:
             constraint = lhs.leadingAnchor.constraint(
-                equalTo: ignoresSafeArea ? base.leadingAnchor : safeArea.leadingAnchor,
-                constant: rect.minX + offset
+                equalTo: rhs.leadingAnchor,
+                constant: rect.minX + offset + (ignoresSafeArea ? 0 : safeAreaInsets.left)
             )
         }
         
@@ -166,42 +187,48 @@ public struct InsideLayout: Layout {
 // MARK: - Outside Layout
 public struct OutsideLayout: Layout {
     // MARK: - Property
-    private let offset: CGFloat
     private let anchor: Anchor
+    private let target: UIView?
+    private let offset: CGFloat
     
     // MARK: - Initializer
-    public init(_ offset: CGFloat = 0, of anchor: Anchor) {
-        self.offset = offset
+    public init(
+        _ anchor: Anchor,
+        of target: UIView?,
+        offset: CGFloat = 0
+    ) {
         self.anchor = anchor
+        self.target = target
+        self.offset = offset
     }
     
     // MARK: - Lifecycle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
-        let rect = rhs.convert(rhs.bounds, to: base)
+    public func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint {
+        let rect = target.map { $0.convert($0.bounds, to: rhs) } ?? rhs.bounds
         
         let constraint: NSLayoutConstraint
         switch anchor {
         case .top:
             constraint = lhs.bottomAnchor.constraint(
-                equalTo: base.topAnchor,
+                equalTo: rhs.topAnchor,
                 constant: rect.minY - offset
             )
             
         case .trailing:
             constraint = lhs.leadingAnchor.constraint(
-                equalTo: base.trailingAnchor,
-                constant: -(base.bounds.width - rect.maxX) + offset
+                equalTo: rhs.trailingAnchor,
+                constant: -(rhs.bounds.width - rect.maxX) + offset
             )
             
         case .bottom:
             constraint = lhs.topAnchor.constraint(
-                equalTo: base.bottomAnchor,
-                constant: -(base.bounds.height - rect.maxY) + offset
+                equalTo: rhs.bottomAnchor,
+                constant: -(rhs.bounds.height - rect.maxY) + offset
             )
             
         case .leading:
             constraint = lhs.trailingAnchor.constraint(
-                equalTo: base.leadingAnchor,
+                equalTo: rhs.leadingAnchor,
                 constant: rect.minX - offset
             )
         }
@@ -219,45 +246,47 @@ public struct OutsideLayout: Layout {
 // MARK: - Center Layout
 public struct CenterLayout: Layout {
     // MARK: - Property
-    private let offset: CGFloat
     private let axis: Axis
+    private let target: UIView?
+    private let offset: CGFloat
     private let ignoresSafeArea: Bool
     
     // MARK: - Initializer
-    init(_ offset: CGFloat = 0, of: Axis, ignoresSafeArea: Bool = false) {
+    init(
+        _ axis: Axis,
+        of target: UIView?,
+        offset: CGFloat = 0,
+        ignoresSafeArea: Bool = false
+    ) {
+        self.axis = axis
+        self.target = target
         self.offset = offset
-        self.axis = of
         self.ignoresSafeArea = ignoresSafeArea
     }
     
     // MARK: - Lifecycle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
-        let rect = rhs.convert(rhs.bounds, to: base)
-        let safeAreaInsets = UIEdgeInsets(
-            top: max(base.safeAreaInsets.top - rect.minY, 0),
-            left: max(base.safeAreaInsets.left - rect.minX, 0),
-            bottom: max(rect.maxY - base.frame.maxY - base.safeAreaInsets.bottom, 0),
-            right: max(rect.maxX - base.frame.maxX - base.safeAreaInsets.right, 0)
-        )
+    public func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint {
+        let rect = target.map { $0.convert($0.bounds, to: rhs) } ?? rhs.bounds
+        let safeAreaInsets = target?.safeAreaInsets ?? rhs.safeAreaInsets
         
         let constraint: NSLayoutConstraint
         switch axis {
         case .x:
-            let calibratedMidX = rect.midX
-                + (ignoresSafeArea ? 0 : (safeAreaInsets.left - safeAreaInsets.right) / 2)
-            
             constraint = lhs.centerXAnchor.constraint(
-                equalTo: base.centerXAnchor,
-                constant: calibratedMidX - base.bounds.midX + offset
+                equalTo: rhs.centerXAnchor,
+                constant: rect.midX
+                    - rhs.bounds.midX
+                    + offset
+                    + (ignoresSafeArea ? 0 : (safeAreaInsets.left - safeAreaInsets.right) / 2)
             )
             
         case .y:
-            let calibratedMidY = rect.midY
-                + (ignoresSafeArea ? 0 : (safeAreaInsets.top - safeAreaInsets.bottom) / 2)
-            
             constraint = lhs.centerYAnchor.constraint(
-                equalTo: base.centerYAnchor,
-                constant: calibratedMidY - base.bounds.midY + offset
+                equalTo: rhs.centerYAnchor,
+                constant: rect.midY
+                    - rhs.bounds.midY
+                    + offset
+                    + (ignoresSafeArea ? 0 : (safeAreaInsets.top - safeAreaInsets.bottom) / 2)
             )
         }
         
@@ -282,7 +311,7 @@ public struct WidthLayout: Layout {
     }
     
     // MARK: - Lifecylcle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    public func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint {
         let constraint = lhs.widthAnchor.constraint(equalToConstant: width)
         constraint.priority = .init(rawValue: 999)
         
@@ -305,7 +334,7 @@ public struct HeightLayout: Layout {
     }
     
     // MARK: - Lifecylcle
-    public func makeConstraint(from lhs: UIView, to rhs: UIView, in base: UIView) -> NSLayoutConstraint {
+    public func makeConstraint(from lhs: UIView, to rhs: UIView) -> NSLayoutConstraint {
         let constraint = lhs.heightAnchor.constraint(equalToConstant: height)
         constraint.priority = .init(rawValue: 999)
         
