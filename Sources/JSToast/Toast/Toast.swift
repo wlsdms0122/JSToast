@@ -25,14 +25,9 @@ public class Toast: Equatable {
             NSLayoutConstraint.activate(constraints)
         }
     }
-    private var currentAnimation: ToastAnimation?
+    private var currentAnimation: (any ToastAnimation)?
     
-    private var timer: Timer? {
-        didSet {
-            oldValue?.invalidate()
-        }
-    }
-    
+    private var timerCancellable: AnyCancellable?
     private var frameObserveCancellable: AnyCancellable?
     
     // MARK: - Initializer
@@ -72,81 +67,38 @@ public class Toast: Equatable {
         shown: ((Bool) -> Void)? = nil,
         hidden: ((Bool) -> Void)? = nil
     ) -> Toast {
-        let _layer: UIView
-        if let layer = layer {
-            // Clear window when toast layer are specified.
-            window?.isHidden = true
-            window = nil
-            
-            _layer = layer
-        } else {
-            guard let scene = scene ?? Toast.scene else {
-                shown?(false)
-                return self
-            }
-            
-            // Restore or create new window to attach toast.
-            let window = self.window ?? ContentResponderWindow(windowScene: scene)
-            window.isHidden = false
-            self.window = window
-            
-            _layer = window
+        // Make the toast window should be attached.
+        guard let layer = makeToastWindow(layer: layer, scene: scene) else {
+            shown?(false)
+            return self
         }
         
-        // Attach toast view into layer.
+        // Attach the toast to layer.
         let toast = view
-        [toast].forEach {
-            $0.removeFromSuperview()
-            
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            _layer.addSubview($0)
-        }
-        
-        // Set layout constraints of toast view.
-        updateLayout(
-            layouts,
-            of: toast,
-            layer: _layer,
+        attachTaost(
+            toast,
+            layouts: layouts,
+            layer: layer,
             boundary: boundary,
             ignoresSafeArea: ignoresSafeArea
         )
         
-        // Update layout when layer frame changed.
-        frameObserveCancellable = _layer.publisher(for: \.frame)
-            .sink { [weak self] _ in
-                self?.updateLayout(
-                    layouts,
-                    of: toast,
-                    layer: _layer,
-                    boundary: boundary,
-                    ignoresSafeArea: ignoresSafeArea
-                )
-            }
-        
-        // Show with animation.
-        let showCompletionHandler: (Bool) -> Void = { [weak self] in
-            self?.currentAnimation = nil
-            
+        // Show the toast with animation
+        playAnimation(showAnimation, toast: toast) { [self] in
+            self.currentAnimation = nil
             shown?($0)
-        }
-        if let currentAnimation {
-            // Cancel the current animation if exist.
-            currentAnimation.cancel {
-                showAnimation.play(toast, completion: showCompletionHandler)
-            }
-        } else {
-            showAnimation.play(toast, completion: showCompletionHandler)
         }
         
         if let duration = duration {
             // Set timer if duration set.
-            timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [self] _ in
-                // Hide with animation.
-                hide(animation: hideAnimation) { hidden?($0) }
-            }
+            timerCancellable = Timer.publish(every: duration, on: .main, in: .default)
+                .autoconnect()
+                .prefix(1)
+                .sink { [self] _ in
+                    // Hide the toast with animation.
+                    hide(animation: hideAnimation) { hidden?($0) }
+                }
         }
-        
-        self.currentAnimation = showAnimation
         
         return self
     }
@@ -157,30 +109,17 @@ public class Toast: Equatable {
     ///   - animation: The animation to be played when disappearing. Default value is `fadeOut(duration: 0.3)`.
     ///   - completion: The hidden completion handler with success.
     open func hide(
-        animation: ToastAnimation,
+        animation: ToastAnimation = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
-        let toast = view
-        
-        // Hide whith animation.
-        let hideCompletionHandler: (Bool) -> Void = { [weak self] in
-            self?.frameObserveCancellable?.cancel()
+        playAnimation(animation, toast: view) { [self] in
+            self.frameObserveCancellable?.cancel()
             
-            self?.view.removeFromSuperview()
-            self?.currentAnimation = nil
+            self.view.removeFromSuperview()
+            self.currentAnimation = nil
             
             completion?($0)
         }
-        if let currentAnimation {
-            // Cancel the current animation if exist.
-            currentAnimation.cancel {
-                animation.play(toast, completion: hideCompletionHandler)
-            }
-        } else {
-            animation.play(toast, completion: hideCompletionHandler)
-        }
-        
-        currentAnimation = animation
     }
     
     /// Update toast layout.
@@ -220,6 +159,65 @@ public class Toast: Equatable {
     }
     
     // MARK: - Private
+    private func makeToastWindow(
+        layer: UIView?,
+        scene: UIWindowScene?
+    ) -> UIView? {
+        if let layer = layer {
+            // Clear window when toast layer are specified.
+            window?.isHidden = true
+            window = nil
+            
+            return layer
+        } else {
+            guard let scene = scene ?? Toast.scene else { return nil }
+            
+            // Restore or create new window to attach toast.
+            let window = self.window ?? ContentResponderWindow(windowScene: scene)
+            window.isHidden = false
+            self.window = window
+            
+            return window
+        }
+    }
+    
+    private func attachTaost(
+        _ toast: UIView,
+        layouts: [any Layout],
+        layer: UIView,
+        boundary: UIEdgeInsets,
+        ignoresSafeArea: Bool
+    ) {
+        // Attach toast view into layer.
+        [toast].forEach {
+            $0.removeFromSuperview()
+            
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            layer.addSubview($0)
+        }
+        
+        // Set layout constraints of toast view.
+        updateLayout(
+            layouts,
+            of: toast,
+            layer: layer,
+            boundary: boundary,
+            ignoresSafeArea: ignoresSafeArea
+        )
+        
+        // Update layout when layer frame changed.
+        frameObserveCancellable = layer.publisher(for: \.frame)
+            .sink { [weak self] _ in
+                self?.updateLayout(
+                    layouts,
+                    of: toast,
+                    layer: layer,
+                    boundary: boundary,
+                    ignoresSafeArea: ignoresSafeArea
+                )
+            }
+    }
+    
     private func updateLayout(
         _ layouts: [Layout],
         of view: UIView,
@@ -272,6 +270,22 @@ public class Toast: Equatable {
                 constant: boundary.left
             )
         ]
+    }
+    
+    private func playAnimation(
+        _ animation: any ToastAnimation,
+        toast: UIView,
+        completion: @escaping (Bool) -> Void
+    ) {
+        if let currentAnimation {
+            currentAnimation.cancel {
+                animation.play(toast, completion: completion)
+            }
+        } else {
+            animation.play(toast, completion: completion)
+        }
+        
+        self.currentAnimation = animation
     }
     
     deinit {

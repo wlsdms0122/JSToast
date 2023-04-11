@@ -132,7 +132,7 @@ public struct InsideLayout: Layout {
     // MARK: - Initializer
     public init(
         _ anchor: Anchor,
-        of target: UIView?,
+        of target: UIView? = nil,
         offset: CGFloat = 0,
         ignoresSafeArea: Bool = false
     ) {
@@ -194,7 +194,7 @@ public struct OutsideLayout: Layout {
     // MARK: - Initializer
     public init(
         _ anchor: Anchor,
-        of target: UIView?,
+        of target: UIView? = nil,
         offset: CGFloat = 0
     ) {
         self.anchor = anchor
@@ -252,9 +252,9 @@ public struct CenterLayout: Layout {
     private let ignoresSafeArea: Bool
     
     // MARK: - Initializer
-    init(
+    public init(
         _ axis: Axis,
-        of target: UIView?,
+        of target: UIView? = nil,
         offset: CGFloat = 0,
         ignoresSafeArea: Bool = false
     ) {
@@ -306,7 +306,7 @@ public struct WidthLayout: Layout {
     private let width: CGFloat
     
     // MARK: - Initializer
-    init(_ width: CGFloat) {
+    public init(_ width: CGFloat) {
         self.width = width
     }
     
@@ -329,7 +329,7 @@ public struct HeightLayout: Layout {
     private let height: CGFloat
     
     // MARK: - Initializer
-    init(_ height: CGFloat) {
+    public init(_ height: CGFloat) {
         self.height = height
     }
     
