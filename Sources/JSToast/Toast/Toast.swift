@@ -84,8 +84,7 @@ public class Toast: Equatable {
         )
         
         // Show the toast with animation
-        playAnimation(showAnimation, toast: toast) { [self] in
-            self.currentAnimation = nil
+        playAnimation(showAnimation, toast: toast) {
             shown?($0)
         }
         
@@ -96,7 +95,9 @@ public class Toast: Equatable {
                 .prefix(1)
                 .sink { [self] _ in
                     // Hide the toast with animation.
-                    hide(animation: hideAnimation) { hidden?($0) }
+                    hide(animation: hideAnimation) {
+                        hidden?($0)
+                    }
                 }
         }
         
@@ -112,11 +113,11 @@ public class Toast: Equatable {
         animation: ToastAnimation = .fadeOut(duration: 0.3),
         completion: ((Bool) -> Void)? = nil
     ) {
+        timerCancellable = nil
+        
         playAnimation(animation, toast: view) { [self] in
-            self.frameObserveCancellable?.cancel()
-            
+            self.frameObserveCancellable = nil
             self.view.removeFromSuperview()
-            self.currentAnimation = nil
             
             completion?($0)
         }
@@ -279,13 +280,19 @@ public class Toast: Equatable {
     ) {
         if let currentAnimation {
             currentAnimation.cancel {
-                animation.play(toast, completion: completion)
+                animation.play(toast) {
+                    self.currentAnimation = nil
+                    completion($0)
+                }
             }
         } else {
-            animation.play(toast, completion: completion)
+            animation.play(toast) {
+                self.currentAnimation = nil
+                completion($0)
+            }
         }
         
-        self.currentAnimation = animation
+        currentAnimation = animation
     }
     
     deinit {
