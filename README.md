@@ -5,40 +5,38 @@
 - [Requirements](#requirements)
 - [Installation](#installation)
   - [Swift Pacakge Manager](#swift-pacakge-manager)
-- [How to use](#how-to-use)
+- [Getting Started](#getting-started)
   - [Position](#position)
   - [Animation](#animation)
-  - [Advanced](#advanced)
-  - [SwiftUI support](#swiftui-support)
+  - [Advanced Usage](#advanced-usage)
+  - [SwiftUI Support](#swiftui-support)
 - [Contribution](#contribution)
 - [License](#license)
 
 # Requirements
-- iOS 13.0+ (needs 14.0+ on `SwiftUI`)
+- iOS 13.0+
 # Installation
 ## Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.2.0")
+    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.6.0")
 ]
 ```
 
-# How to use
+# Getting Started
 ```swift
 let toastView = UILabel()
 toastView.backgroundColor = .black.withAlphaComponent(0.6)
-toastView.layer.cornerRadius = 16
 toastView.text = "Hello World!"
 toastView.textColor = .white
                 
 let toast = Toast(toastView)
 ```
 
-When you want to show a toast, you first instantiate the `Toast` class. 
+In order to display a toast, we need to first create a view.
+This view is created using the Toast initializer and will be used to display the toast.
 
-You also need to pass a `UIView` instance as the view on which the toast will be displayed.
-
-⚠️ It is recommended that the toast view has its own size.
+> ⚠️ It is recommended that the toast view has its own size.
 
 ```swift
 toast.show(
@@ -50,121 +48,106 @@ toast.show(
 )
 ```  
 
-`Toast` has `show` & `hide` functions.
+Once you have defined a toast, you can display or hide it on the screen using the show function. 
 
-`show` function handle many parameters. but most of it has default value. 
+The show function has many optional parameters, but most of them have default values, making it easy to display a toast message with just a few lines of code.
 
-<img src="https://user-images.githubusercontent.com/11141077/136569217-2651f483-4acb-40fa-88e7-846e75ba6a72.gif" width=300 />
+| <image src="https://user-images.githubusercontent.com/11141077/231676017-c16cdeea-7845-4186-829b-30a80df313f8.gif" /> |
+|-|
 
 ## Position
 ```swift
-public extension Layout where Self == InsideLayout {
-    static func inside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
-        InsideLayout(offset, of: anchor)
-    }
-}
-
-public extension Layout where Self == OutsideLayout {
-    static func outside(_ offset: CGFloat = 0, of anchor: Anchor) -> Self {
-        OutsideLayout(offset, of: anchor)
-    }
-}
-
-public extension Layout where Self == CenterLayout {
-    static func center(_ offset: CGFloat = 0, of axis: Axis) -> Self {
-        CenterLayout(offset, of: axis)
-    }
+extension Layout {
+    static func inside(_ anchor: Anchor, of target: UIView? = nil, offset: CGFloat = 0, ignoresSafeArea: Bool = false) -> Self
+    static func outside(_ anchor: Anchor, of target: UIView? = nil, offset: CGFloat = 0) -> Self
+    static func center(_ axis: Axis, of target: UIView? = nil, offset: CGFloat = 0, ignoresSafeArea: Bool = false) -> Self
+    static func width(_ width: CGFloat) -> Self
+    static func height(_ height: CGFloat) -> Self
 }
 ```
 
-To set the position of the `Toast`, the `show` method uses the `layouts` parameter.
+`JSToast` offers multiple layout types, including `inside` and `outside` layouts that support a `target` parameter.
 
-It describes the position where the toast will be displayed.
+When you set the `target` parameter to `nil`, the `target` is the `layer`(if `layer` also `nil`, it to be `window`).
+
+By using `inside` or `outside` layouts with the `target` parameter, you can position the toast `inside` or `outside` of a specific view.
 
 
 ```swift
-// `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis.
 toast.show(
     withDuration: 3,
     layouts: [
-        .outside(of: .top), 
+        .outside(of: .top, of: showButton, offset: 8),
         .center(of: .x)
-    ],
-    target: showButton
+    ]
 )
 ```
-<img src="https://user-images.githubusercontent.com/11141077/136571290-fd792ec8-51c8-4929-a4b5-a6ffdd9e635a.gif" width=300 />
-
-And let's see toast `show` function again.
-
-In actuality, the Toast is reflected onto a full-screen window and attached to it.
+| <image src="https://user-images.githubusercontent.com/11141077/231676008-c9f64fe0-ccc8-40ef-b3f7-6394cc41e80d.gif" /> |
+|-|
 
 ## Animation
 ```swift
-public extension Animation where Self == FadeInAnimation {
-    static func fadeIn(duration: TimeInterval) -> Self {
-        FadeInAnimation(duration: duration)
-    }
-}
-
-public extension Animation where Self == FadeOutAnimation {
-    static func fadeOut(duration: TimeInterval) -> Self {
-        FadeOutAnimation(duration: duration)
-    }
-}
-
-public extension Animation where Self == SlideInAnimation {
-    static func slideIn(duration: TimeInterval, direction: Direction, offset: CGFloat? = nil) -> Self {
-        SlideInAnimation(duration: duration, direction: direction, offset: offset)
-    }
+extension ToastAnimation {
+    static func fadeIn(duration: TimeInterval, curve: UIView.AnimationCurve = .easeInOut) -> Self
+    static func fadeOut(duration: TimeInterval, curve: UIView.AnimationCurve = .easeInOut) -> Self
+    static func slideIn(duration: TimeInterval, direction: Direction, curve: UIView.AnimationCurve = .easeInOut, offset: CGFloat? = nil) -> Self
+    static func slideOut(duration: TimeInterval, direction: Direction, curve: UIView.AnimationCurve = .easeInOut, offset: CGFloat? = nil) -> Self
 }
 ```
 
-You can set animations for the Toast to control how it appears and disappears.
-
-The `JSToast` provides default animations for appearing and disappearing the toast.
+You can set default animations or create your custom animation for the toast to control how it appears and disappears from the screen. The `showAnimation` and `hideAnimation` parameters of the show function can be used to define the animations for the toast.
 
 ```swift
 toast.show(
     withDuration: 3,
-    // `Toast` will show `someView`'s inside of bottom & `someView`'s center of x axis. 
     layouts: [
-        .inside(of: .bottom),
-        .center(of: .x)
+        .center(.x),
+        .outside(.bottom, of: view, offset: 8)
     ],
-    showAnimation: .fadeIn(duration: 0.3),
-    hideAnimation: .fadeOut(duration: 0.3)
+    showAnimation: .slideIn(duration: 0.3, direction: .up),
+    hideAnimation: .slideOut(duration: 0.3, direction: .down)
 )
 ```
 
-If you want to customize toast animation, define animation through adapt `Animation`
-   
+| <image src="https://user-images.githubusercontent.com/11141077/231681764-b60dfadb-d2f4-4210-b31f-92732fefa20b.gif" /> |
+|-|
+
+If you want to create your custom animation, you can implement the `ToastAnimation` protocol, which requires the implementation of two functions.
+
 ```swift
-public protocol Animation {
+protocol ToastAnimation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
+    func cancel(completion: @escaping () -> Void)
 }
 ```
 
-## Advanced
-`Toast` is work standalone. But if you want to more complex work or limit operations for your application system, I recommended to create own `Toast` manager like `Toaster`.
+## Advanced Usage
+While the `Toast` class can be used standalone, it may be more beneficial to creating a custom manager like `Toaster` if you want to perform more complex tasks or limit your application system operations.
 
-`Toaster` is manage `Toast` to ensure that showing only one.
+`Toaster` is a custom class that manages the `Toast` instances to make sure that only one toast is visible at a time. This can help to enhance the user experience and prevent too many toasts from being displayed simultaneously.
 
-## SwiftUI support
+By creating a custom manager like `Toaster`, developers can control the behavior of the toast within their application and create custom workflows that best suit their project's requirements.
+
+## SwiftUI Support
+`JSToast` also supports `SwiftUI`. You can use the `.toast()` modifier to add a toast message to your view.
+
 ```swift
 struct SampleView: View {
     var body: some View {
-        Text("Hello World")
+        Button("🍞 Show Toast") {
+            isShow = true
+        }
             .toast(
                 $isShow,
-                duration: 2,
+                duration: 3,
                 layout: [
-                    .outside(of: .top),
-                    .center(of: .x)
+                    .center(of: .x),
+                    .inside(of: .bottom)
                 ]
             ) {
-                Text("Toast View")
-                    .background(Color.blue)
+                Text("Hello World")
+                    .foregroundColor(.white)
+                    .background(Color.black.opacity(0.6))
             }
     }
 
@@ -173,9 +156,35 @@ struct SampleView: View {
 }
 ```
 
-You can use `JSToast` on `SwiftUI` using `.toast(_:layouts:)` view modifier.
+In the above example, the .inside(of: .bottom) layout is automatically set based on the button. 
 
-All interface equal with `UIKit`. See more [How to use](#how-to-use) section.
+The `.toast()` modifier automatically assigns the target view for the toast.
+
+```swift
+struct SampleView: View {
+    var body: some View {
+        ToastContainer { layer in
+            Button("🍞 Show Toast") {
+                isShow = true
+            }
+                .toast(
+                    $isShow,
+                    duration: 3,
+                    layout: [
+                        .center(of: .x),
+                        .inside(of: .bottom)
+                    ],
+                    layer: layer
+                ) { ... }
+        }
+    }
+
+    @State
+    var isShow: Bool = false
+}
+```
+
+If you want to set the layer manually, you can use `ToastContainer`, which receives the layer as a closure parameter.
 
 # Contribution
 

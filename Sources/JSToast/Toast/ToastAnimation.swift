@@ -16,7 +16,7 @@ public enum Direction {
 
 public protocol ToastAnimation {
     func play(_ view: UIView, completion: @escaping (Bool) -> Void)
-    func cancel()
+    func cancel(completion: @escaping () -> Void)
 }
 
 public extension ToastAnimation where Self == FadeInAnimation {
@@ -24,7 +24,10 @@ public extension ToastAnimation where Self == FadeInAnimation {
         duration: TimeInterval,
         curve: UIView.AnimationCurve = .easeInOut
     ) -> Self {
-        FadeInAnimation(duration: duration, curve: curve)
+        FadeInAnimation(
+            duration: duration,
+            curve: curve
+        )
     }
 }
 
@@ -103,7 +106,16 @@ public class FadeInAnimation: ToastAnimation {
         self.animator = animator
     }
     
-    public func cancel() {
+    public func cancel(completion: @escaping () -> Void) {
+        guard animator?.isRunning ?? false else {
+            completion()
+            return
+        }
+        
+        animator?.addCompletion { _ in
+            completion()
+        }
+        
         animator?.stopAnimation(false)
         animator?.finishAnimation(at: .current)
         animator = nil
@@ -141,7 +153,16 @@ public class FadeOutAnimation: ToastAnimation {
         self.animator = animator
     }
     
-    public func cancel() {
+    public func cancel(completion: @escaping () -> Void) {
+        guard animator?.isRunning ?? false else {
+            completion()
+            return
+        }
+        
+        animator?.addCompletion { _ in
+            completion()
+        }
+        
         animator?.stopAnimation(false)
         animator?.finishAnimation(at: .current)
         animator = nil
@@ -191,7 +212,16 @@ public class SlideInAnimation: ToastAnimation {
         self.animator = animator
     }
     
-    public func cancel() {
+    public func cancel(completion: @escaping () -> Void) {
+        guard animator?.isRunning ?? false else {
+            completion()
+            return
+        }
+        
+        animator?.addCompletion { _ in
+            completion()
+        }
+        
         animator?.stopAnimation(false)
         animator?.finishAnimation(at: .current)
         animator = nil
@@ -275,7 +305,16 @@ public class SlideOutAnimation: ToastAnimation {
         self.animator = animator
     }
     
-    public func cancel() {
+    public func cancel(completion: @escaping () -> Void) {
+        guard animator?.isRunning ?? false else {
+            completion()
+            return
+        }
+        
+        animator?.addCompletion { _ in
+            completion()
+        }
+        
         animator?.stopAnimation(false)
         animator?.finishAnimation(at: .current)
         animator = nil
