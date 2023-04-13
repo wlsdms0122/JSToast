@@ -30,7 +30,7 @@ class ToastWrapper<Content: View> {
         shown: ((Bool) -> Void)?,
         hidden: ((Bool) -> Void)?
     ) {
-        toast = Toast(content().fixedSize())
+        toast = Toast(content())
             .show(
                 withDuration: duration,
                 layouts: layouts.map { $0.layout(target) },
