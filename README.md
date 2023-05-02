@@ -19,7 +19,7 @@
 ## Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.6.0")
+    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.6.2")
 ]
 ```
 
