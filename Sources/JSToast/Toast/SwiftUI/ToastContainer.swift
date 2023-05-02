@@ -9,11 +9,11 @@ import SwiftUI
 
 public struct ToastLayer {
     // MARK: - Property
-    weak var layer: UIView?
+    public weak var view: UIView?
     
     // MARK: - Initializer
-    init(_ layer: UIView? = nil) {
-        self.layer = layer
+    init(_ view: UIView? = nil) {
+        self.view = view
     }
     
     // MARK: - Public
