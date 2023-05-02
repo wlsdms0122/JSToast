@@ -7,71 +7,71 @@
 
 import SwiftUI
 
-class ToastWrapper<Content: View> {
-    // MARK: - Property
-    private(set) var toast: Toast?
-    private let content: () -> Content
-    
-    // MARK: - Initializer
-    init(@ViewBuilder content: @escaping () -> Content) {
-        self.content = content
-    }
-    
-    // MARK: - Public
-    func show(
-        withDuration duration: TimeInterval?,
-        layouts: [ViewLayout],
-        target: UIView?,
-        layer: UIView?,
-        boundary: UIEdgeInsets,
-        scene: UIWindowScene?,
-        showAnimation: ToastAnimation,
-        hideAnimation: ToastAnimation,
-        shown: ((Bool) -> Void)?,
-        hidden: ((Bool) -> Void)?
-    ) {
-        toast = Toast(content())
-            .show(
-                withDuration: duration,
-                layouts: layouts.map { $0.layout(target) },
-                layer: layer,
-                boundary: boundary,
-                ignoresSafeArea: true,
-                scene: scene,
-                showAnimation: showAnimation,
-                hideAnimation: hideAnimation,
-                shown: shown,
-                hidden: { [weak self] in
-                    self?.toast = nil
-                    hidden?($0)
-                }
-            )
-    }
-    
-    func hide(
-        animation: ToastAnimation,
-        completion: ((Bool) -> Void)? = nil
-    ) {
-        let toast = toast
-        self.toast = nil
-        
-        toast?.hide(
-            animation: animation,
-            completion: completion
-        )
-    }
-    
-    // MARK: - Private
-}
-
 struct ToastView<Content: View>: UIViewRepresentable {
+    class Toaster<Content: View> {
+        // MARK: - Property
+        private(set) var toast: Toast?
+        private let content: () -> Content
+        
+        // MARK: - Initializer
+        init(@ViewBuilder _ content: @escaping () -> Content) {
+            self.content = content
+        }
+        
+        // MARK: - Public
+        func show(
+            withDuration duration: TimeInterval?,
+            layouts: [ViewLayout],
+            target: UIView?,
+            layer: UIView?,
+            boundary: UIEdgeInsets,
+            scene: UIWindowScene?,
+            showAnimation: ToastAnimation,
+            hideAnimation: ToastAnimation,
+            shown: ((Bool) -> Void)?,
+            hidden: ((Bool) -> Void)?
+        ) {
+            toast = Toast(content())
+                .show(
+                    withDuration: duration,
+                    layouts: layouts.map { $0.layout(target) },
+                    layer: layer,
+                    boundary: boundary,
+                    ignoresSafeArea: true,
+                    scene: scene,
+                    showAnimation: showAnimation,
+                    hideAnimation: hideAnimation,
+                    shown: shown,
+                    hidden: { [weak self] in
+                        self?.toast = nil
+                        hidden?($0)
+                    }
+                )
+        }
+        
+        func hide(
+            animation: ToastAnimation,
+            completion: ((Bool) -> Void)? = nil
+        ) {
+            let toast = toast
+            self.toast = nil
+            
+            toast?.hide(
+                animation: animation,
+                completion: completion
+            )
+        }
+        
+        // MARK: - Private
+    }
+    
     // MARK: - Property
     @Binding
     private var isShow: Bool
     
     private let duration: TimeInterval?
     private let layouts: [ViewLayout]
-    private let layer: UIView?
+    private let layer: ToastLayer?
     private let boundary: UIEdgeInsets
     private let showAnimation: ToastAnimation
     private let hideAnimation: ToastAnimation
@@ -84,7 +84,7 @@ struct ToastView<Content: View>: UIViewRepresentable {
         _ isShow: Binding<Bool>,
         duration: TimeInterval?,
         layouts: [ViewLayout],
-        layer: UIView?,
+        layer: ToastLayer?,
         boundary: UIEdgeInsets,
         showAnimation: ToastAnimation,
         hideAnimation: ToastAnimation,
@@ -117,7 +117,7 @@ struct ToastView<Content: View>: UIViewRepresentable {
                 withDuration: duration,
                 layouts: layouts,
                 target: uiView,
-                layer: layer,
+                layer: layer?.layer,
                 boundary: boundary,
                 scene: uiView.window?.windowScene,
                 showAnimation: showAnimation,
@@ -137,8 +137,8 @@ struct ToastView<Content: View>: UIViewRepresentable {
         }
     }
     
-    func makeCoordinator() -> ToastWrapper<Content> {
-        ToastWrapper(content: content)
+    func makeCoordinator() -> Toaster<Content> {
+        Toaster(content)
     }
     
     // MARK: - Public
