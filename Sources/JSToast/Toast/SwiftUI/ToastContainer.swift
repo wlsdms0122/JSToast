@@ -7,11 +7,27 @@
 
 import SwiftUI
 
+public struct ToastLayer {
+    // MARK: - Property
+    weak var layer: UIView?
+    
+    // MARK: - Initializer
+    init(_ layer: UIView? = nil) {
+        self.layer = layer
+    }
+    
+    // MARK: - Public
+    
+    // MARK: - Private
+}
+
 public struct ToastContainer<Content: View>: UIViewRepresentable {
     public class Coordinator {
+        // MARK: - Property
         private let controller: UIHostingController<AnyView>
         var view: UIView { controller.view }
         
+        // MARK: - Initializer
         init() {
             let viewController = UIHostingController<AnyView>(rootView: AnyView(EmptyView()))
             viewController.view.backgroundColor = .clear
@@ -19,19 +35,23 @@ public struct ToastContainer<Content: View>: UIViewRepresentable {
             self.controller = viewController
         }
         
-        func update(_ content: Content) {
-            controller.rootView = AnyView(content)
+        // MARK: - Public
+        func update(_ content: (ToastLayer) -> Content) {
+            controller.rootView = AnyView(content(ToastLayer(view)))
         }
+        
+        // MARK: - Private
     }
+    
     // MARK: - Property
     /// This property is not used. The state of the closure does not affect the view rendering hash,
     /// so an arbitrary result value is generated to distinguish the views.
     private let _dummyContent: Content
-    private let content: (UIView) -> Content
+    private let content: (ToastLayer) -> Content
     
     // MARK: - Initializer
-    public init(@ViewBuilder content: @escaping (UIView) -> Content) {
-        self._dummyContent = content(UIView())
+    public init(@ViewBuilder content: @escaping (ToastLayer) -> Content) {
+        self._dummyContent = content(ToastLayer())
         self.content = content
     }
     
@@ -41,7 +61,7 @@ public struct ToastContainer<Content: View>: UIViewRepresentable {
     }
     
     public func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.update(content(uiView))
+        context.coordinator.update(content)
     }
     
     public func makeCoordinator() -> Coordinator {

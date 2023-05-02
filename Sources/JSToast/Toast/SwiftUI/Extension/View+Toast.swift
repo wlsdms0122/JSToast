@@ -12,7 +12,7 @@ public extension View {
         _ isShow: Binding<Bool>,
         duration: TimeInterval? = nil,
         layouts: [ViewLayout],
-        layer: UIView? = nil,
+        layer: ToastLayer? = nil,
         boundary: UIEdgeInsets = .zero,
         showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
         hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
@@ -20,7 +20,7 @@ public extension View {
         hidden: ((Bool) -> Void)? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        overlay(
+        return overlay(
             ToastView(
                 isShow,
                 duration: duration,
