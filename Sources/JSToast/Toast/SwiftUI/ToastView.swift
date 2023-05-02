@@ -117,7 +117,7 @@ struct ToastView<Content: View>: UIViewRepresentable {
                 withDuration: duration,
                 layouts: layouts,
                 target: uiView,
-                layer: layer?.layer,
+                layer: layer?.view,
                 boundary: boundary,
                 scene: uiView.window?.windowScene,
                 showAnimation: showAnimation,
