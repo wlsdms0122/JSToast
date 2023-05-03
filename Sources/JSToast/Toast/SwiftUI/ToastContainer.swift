@@ -57,7 +57,7 @@ public struct ToastContainer<Content: View>: UIViewRepresentable {
     
     // MARK: - Lifecycle
     public func makeUIView(context: Context) -> UIView {
-        IntrinsicContentView(context.coordinator.view)
+        context.coordinator.view
     }
     
     public func updateUIView(_ uiView: UIView, context: Context) {
