@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct ToastView<Content: View>: UIViewRepresentable {
-    class Toaster<Content: View> {
+    class Toaster<ToastContent: View> {
         // MARK: - Property
         private(set) var toast: Toast?
-        private let content: () -> Content
+        private let content: () -> ToastContent
         
         // MARK: - Initializer
-        init(@ViewBuilder _ content: @escaping () -> Content) {
+        init(@ViewBuilder _ content: @escaping () -> ToastContent) {
             self.content = content
         }
         
