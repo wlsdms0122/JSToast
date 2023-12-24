@@ -148,13 +148,10 @@ public struct ToastReader<Content: View>: View {
     // MARK: - Property
     @StateObject
     private var container = ToastContainer()
-    
-    private let _dummyContent: Content
     private let content: (ToastProxy) -> Content
     
     // MARK: - Initializer
     public init(@ViewBuilder content: @escaping (ToastProxy) -> Content) {
-        self._dummyContent = content(ToastProxy())
         self.content = content
     }
     
