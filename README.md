@@ -14,12 +14,13 @@
 - [License](#license)
 
 # Requirements
-- iOS 13.0+
+- iOS 14.0+
+
 # Installation
 ## Swift Pacakge Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/wlsdms0122/JSToast", exact: "2.6.2")
+    .package(url: "https://github.com/wlsdms0122/JSToast", .upToNextMajor(from: "2.0.0"))
 ]
 ```
 
@@ -163,7 +164,7 @@ The `.toast()` modifier automatically assigns the target view for the toast.
 ```swift
 struct SampleView: View {
     var body: some View {
-        ToastContainer { layer in
+        ToastLayerReader { layer in
             Button("🍞 Show Toast") {
                 isShow = true
             }
@@ -184,7 +185,7 @@ struct SampleView: View {
 }
 ```
 
-If you want to set the layer manually, you can use `ToastContainer`, which receives the layer as a closure parameter.
+If you want to set the layer manually, you can use `ToastLayerReader`, which receives the layer as a closure parameter.
 
 # Contribution
 
