@@ -10,8 +10,8 @@ import Combine
 
 public class ToastLayerProxy {
     // MARK: - Property
-    public private(set) var view: UIView?
-    public private(set) var scene: UIWindowScene?
+    public private(set) weak var view: UIView?
+    public private(set) weak var scene: UIWindowScene?
     
     // MARK: - Initializer
     
