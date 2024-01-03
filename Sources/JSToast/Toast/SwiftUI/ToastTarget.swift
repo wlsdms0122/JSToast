@@ -33,6 +33,6 @@ struct ToastTarget<ID: Hashable>: UIViewRepresentable {
 
 public extension View {
     func toastTarget<ID: Hashable>(_ id: ID) -> some View {
-        overlay(ToastTarget(id: id))
+        overlay(ToastTarget(id: id).allowsHitTesting(false))
     }
 }
