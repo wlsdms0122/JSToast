@@ -327,16 +327,16 @@ public class SlideOutAnimation: ToastAnimation {
         
         switch direction {
         case .up:
-            return view.frame.maxY
+            return view.frame.maxY - view.transform.ty
             
         case .right:
-            return superview.bounds.width - view.frame.minX
+            return superview.bounds.width - view.frame.minX + view.transform.tx
             
         case .down:
-            return superview.bounds.height - view.frame.minY
+            return superview.bounds.height - view.frame.minY + view.transform.ty
             
         case .left:
-            return view.frame.maxX
+            return view.frame.maxX - view.transform.tx
         }
     }
     
