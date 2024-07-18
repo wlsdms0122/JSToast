@@ -7,10 +7,30 @@
 
 import SwiftUI
 
+public final class LayerProxy {
+    // MARK: - Property
+    public private(set) weak var view: UIView?
+    
+    public var window: UIWindow? { view?.window }
+    
+    // MARK: - Initializer
+    init(_ view: UIView? = nil) {
+        self.view = view
+    }
+    
+    // MARK: - Public
+    func set(_ view: UIView?) {
+        self.view = view
+    }
+    
+    // MARK: - Private
+}
+
 public struct ToastLayer<ID: Hashable, Content: View>: UIViewControllerRepresentable {
     public final class Coordinator {
         // MARK: - Property
         let container = ToastContainer()
+        let layer = LayerProxy()
         
         // MARK: - Initializer
         
@@ -21,10 +41,10 @@ public struct ToastLayer<ID: Hashable, Content: View>: UIViewControllerRepresent
     
     // MARK: - Property
     private let id: ID
-    private let content: (UIView) -> Content
+    private let content: (LayerProxy) -> Content
     
     // MARK: - Initializer
-    public init(_ id: ID, @ViewBuilder content: @escaping (UIView) -> Content) {
+    public init(_ id: ID, @ViewBuilder content: @escaping (LayerProxy) -> Content) {
         self.id = id
         self.content = content
     }
@@ -34,6 +54,9 @@ public struct ToastLayer<ID: Hashable, Content: View>: UIViewControllerRepresent
         let viewController = UIHostingController(rootView: AnyView(EmptyView()))
         viewController.view.backgroundColor = .clear
         
+        // Set layer
+        context.coordinator.layer.set(viewController.view)
+        
         return viewController
     }
     
@@ -42,7 +65,7 @@ public struct ToastLayer<ID: Hashable, Content: View>: UIViewControllerRepresent
         container.registerTarget(uiViewController.view, id: id)
         
         uiViewController.rootView = AnyView(
-            content(uiViewController.view)
+            content(context.coordinator.layer)
                 .environment(\.toastContainer, container)
         )
     }

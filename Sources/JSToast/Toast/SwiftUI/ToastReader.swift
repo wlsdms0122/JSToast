@@ -23,7 +23,7 @@ extension EnvironmentValues {
 }
 
 final class ToastContainer: ObservableObject {
-    class WeakRef<T: AnyObject> {
+    private final class WeakRef<T: AnyObject> {
         // MARK: - Property
         weak var value: T?
         
