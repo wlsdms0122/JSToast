@@ -12,7 +12,7 @@ public extension View {
         _ isShow: Binding<Bool>,
         duration: TimeInterval? = nil,
         layouts: [ViewLayout],
-        layer: ToastLayerProxy? = nil,
+        layer: (some Hashable)? = Optional<Int>.none,
         boundary: EdgeInsets = .init(.zero),
         showAnimation: ToastAnimation = .fadeIn(duration: 0.3),
         hideAnimation: ToastAnimation = .fadeOut(duration: 0.3),
@@ -21,12 +21,12 @@ public extension View {
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
         overlay(
-            ToastReader { proxy in
+            ToastReader { toaster in
                 Color.clear
                     .toastTarget(1)
                     .onChange(of: isShow.wrappedValue) {
                         if $0 {
-                            proxy.show(
+                            toaster.show(
                                 withDuration: duration,
                                 layouts: layouts,
                                 target: 1,
@@ -42,13 +42,22 @@ public extension View {
                                 content: content
                             )
                         } else {
-                            proxy.hide(
+                            toaster.hide(
                                 animation: hideAnimation,
                                 completion: hidden
                             )
                         }
                     }
             }
+                .allowsHitTesting(false)
+        )
+    }
+}
+
+public extension View {
+    func toastTarget<ID: Hashable>(_ id: ID) -> some View {
+        overlay(
+            ToastLayer(id) { _ in }
                 .allowsHitTesting(false)
         )
     }
